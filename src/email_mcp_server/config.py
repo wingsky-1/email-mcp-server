@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-from pydantic import BaseModel, Field, validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 from .exceptions import ConfigurationError
@@ -27,8 +27,8 @@ class SMTPConfig(BaseSettings):
 class EmailSettings(BaseSettings):
     """邮件设置."""
 
-    address: str = Field(..., env="EMAIL_ADDRESS")
-    password: str = Field(..., env="EMAIL_PASSWORD")
+    address: str = Field(..., env="EMAIL_ADDRESS", description="邮箱地址")
+    password: str = Field(..., env="EMAIL_PASSWORD", description="邮箱密码或授权码")
 
     # 可选的 SMTP 配置（如果不提供将自动检测）
     smtp_server: str | None = Field(None, env="SMTP_SERVER")
@@ -40,7 +40,8 @@ class EmailSettings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
-    @validator("address")
+    @field_validator("address")
+    @classmethod
     def validate_email_address(cls, v: str) -> str:
         """验证邮箱地址格式."""
         if not v or "@" not in v:

@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-这是一个基于 Python 实现的邮件 MCP (Model Context Protocol) 服务器，通过 MCP 协议提供邮件发送功能。
+这是一个基于 Python 实现的邮件 MCP (Model Context Protocol) 服务器，通过 MCP 协议提供邮件发送功能。项目已完成核心功能实现，包括完整的邮件发送、附件处理和配置管理。
 
 ## 技术栈
 
@@ -13,67 +13,183 @@
 - **环境**: UTF-8 无 BOM 编码
 - **进程**: MCP 服务器通过 stdio 运行
 - **版本控制**: Git
+- **代码质量**: Ruff + MyPy + Pylance
+
+## 已实现功能
+
+### 核心功能
+- ✅ 支持 QQ 邮箱和 Gmail 的邮件发送功能
+- ✅ 内置两种邮箱的 SMTP 服务器配置（自动检测）
+- ✅ 通过环境变量配置邮箱凭据
+- ✅ 支持多个收件人、抄送、密送
+- ✅ 支持附件（本地文件和远程 URL）
+- ✅ 完整的错误处理和重试机制
+- ✅ 基于 stdio 的 MCP 服务器启动
+
+### 高级功能
+- ✅ 完整的日志系统
+- ✅ 配置管理和验证
+- ✅ 邮箱地址验证
+- ✅ 连接测试功能
+- ✅ 远程附件下载（带重试机制）
+- ✅ 邮件优先级设置
+- ✅ HTML 和纯文本邮件支持
+
+### 代码质量
+- ✅ 完整的类型注解
+- ✅ Ruff 代码格式检查
+- ✅ MyPy 类型检查
+- ✅ Pylance 静态分析通过
 
 ## 项目结构
 
-基于 `list.md` 中的项目规范，这是一个新项目，将实现：
-
-- 支持 QQ 邮箱和 Gmail 的邮件发送功能
-- 内置两种邮箱的 SMTP 服务器配置
-- 通过环境变量配置邮箱凭据
-- 支持多个收件人
-- 支持附件（本地文件和远程 URL）
-- 发送前启发式问答确认
-- Windows 批处理脚本用于激活虚拟环境
+```
+email-mcp-server/
+├── src/email_mcp_server/           # 主要源代码
+│   ├── __init__.py                 # 包初始化
+│   ├── __main__.py                 # 模块入口点
+│   ├── main.py                     # 服务器主入口
+│   ├── config.py                   # 配置管理
+│   ├── email_service.py            # 邮件服务核心
+│   ├── email_tools.py              # MCP 工具注册
+│   ├── attachment_service.py       # 附件处理服务
+│   ├── models.py                   # 数据模型
+│   ├── exceptions.py               # 自定义异常
+│   └── logging_config.py           # 日志配置
+├── tests/                          # 测试文件
+├── docs/                           # 文档
+├── .env.example                    # 环境变量模板
+├── start_server.bat                # Windows 启动脚本
+├── start_server.sh                 # Linux/macOS 启动脚本
+├── pyproject.toml                  # 项目配置和依赖
+└── README.md                       # 项目说明
+```
 
 ## 开发命令
 
-由于这是一个使用 Python 3.14 和 uv 管理的新项目：
-
+### 环境管理
 ```bash
-# 使用 uv 初始化项目
-uv init --python 3.14
+# 使用 uv 同步依赖（推荐）
+uv sync
 
-# 安装依赖（pyproject.toml 创建后）
-uv pip install -e .
-
-# 运行 MCP 服务器（实现后）
-python -m email_mcp_server
-
-# 使用 Windows 批处理脚本运行（创建后）
-start_server.bat
+# 激活虚拟环境
+source .venv/bin/activate  # Linux/macOS
+.venv\Scripts\activate     # Windows
 ```
 
-## 关键实现要求
+### 运行服务器
+```bash
+# 使用 uv 运行（推荐）
+uv run python -m email_mcp_server
 
-- 所有代码必须包含完整的类型注解
-- 代码必须通过 lint 检查
+# 使用启动脚本
+start_server.bat            # Windows
+./start_server.sh          # Linux/macOS
+
+# 直接运行 Python 模块
+python -m email_mcp_server
+```
+
+### 代码质量检查
+```bash
+# Ruff 代码检查
+uv run ruff check src/
+
+# Ruff 自动修复
+uv run ruff check --fix src/
+
+# Ruff 格式化
+uv run ruff format src/
+
+# MyPy 类型检查
+uv run mypy src/
+
+# Pylance 检查（通过 VS Code 或编辑器集成）
+# 确保所有代码通过 Pylance 静态分析
+```
+
+### 测试
+```bash
+# 运行所有测试
+uv run pytest
+
+# 运行测试并生成覆盖率报告
+uv run pytest --cov=email_mcp_server tests/
+
+# 运行特定测试
+uv run pytest tests/test_email_service.py
+```
+
+## 已实现的关键要求
+
+### 邮箱支持
 - 支持 QQ 邮箱 (@qq.com) 和 Gmail (@gmail.com) 地址
-- SMTP 配置：
-  - QQ 邮箱：内置服务器设置
-  - Gmail：内置服务器设置
-- 邮箱凭据的环境变量
-- .env 文件支持测试
-- 附件处理：
-  - 本地文件：需要绝对路径
-  - 远程文件：URL 下载，使用系统代理，重试 3 次
-- 发送邮件前的启发式确认系统
-- 基于 stdio 的 MCP 服务器启动
+- SMTP 配置自动检测：
+  - QQ 邮箱：smtp.qq.com:587 (TLS)
+  - Gmail：smtp.gmail.com:587 (TLS)
+- 手动 SMTP 配置支持（通过环境变量）
 
-## 配置
+### 附件处理
+- 本地文件：支持绝对和相对路径
+- 远程文件：URL 下载，使用系统代理，重试 3 次
+- 单次发送附件大小限制：25MB
+- 支持所有常见文件类型
 
-邮箱凭据将从环境变量读取：
-- 邮箱地址和授权码
-- 通过 .env 文件进行测试配置
-- 支持多个邮箱账户
+### 配置管理
+- 邮箱凭据从环境变量读取：
+  - `EMAIL_ADDRESS`: 邮箱地址
+  - `EMAIL_PASSWORD`: 密码或授权码
+- .env 文件支持测试配置
+- 支持手动 SMTP 配置覆盖
+- 完整的配置验证和错误提示
 
-## 文件命名规范
+### MCP 工具
+- `send_email`: 发送邮件（支持所有功能）
+- `check_email_config`: 检查邮箱配置和连接测试
+- `validate_email`: 验证邮箱地址格式
+- `get_supported_providers`: 获取支持的邮箱提供商信息
 
-- 主模块：`email_mcp_server.py`（在 src/ 或根目录）
-- Windows 启动脚本：`start_server.bat`
-- 环境文件：`.env`（用于测试）
+## 代码质量标准
+
+### 必须通过的质量检查
+1. **Pylance 静态分析**: 所有代码必须通过 Pylance 检查，无警告和错误
+2. **Ruff 代码检查**: 遵循 Python 代码规范和最佳实践
+3. **MyPy 类型检查**: 所有代码必须有完整的类型注解并通过检查
+4. **测试覆盖率**: 核心功能必须有对应的单元测试
+
+### 代码规范
+- 所有代码必须包含完整的类型注解
+- 使用现代 Python 语法（Python 3.14+）
+- 遵循 PEP 8 代码风格
+- 所有公共 API 必须有完整的文档字符串
+- 异常处理必须完整和准确
+
+## 环境变量配置
+
+```env
+# 必需配置
+EMAIL_ADDRESS=your_email@example.com
+EMAIL_PASSWORD=your_password_or_auth_code
+
+# 可选配置
+LOG_LEVEL=INFO
+LOG_FILE=email_mcp.log
+MAX_ATTACHMENT_SIZE=26214400  # 25MB in bytes
+TEMP_DIR=temp
+DOWNLOAD_TIMEOUT=30
+MAX_RETRIES=3
+REQUIRE_CONFIRMATION=false
+
+# 手动 SMTP 配置（可选）
+SMTP_SERVER=smtp.example.com
+SMTP_PORT=587
+SMTP_USE_TLS=true
+SMTP_USE_SSL=false
+```
 
 ## 重要提示
 
+- 编写mcp服务相关代码时优先参考fastmcp skill中的内容。
 - 在进行代码生成、配置步骤或库/API 文档相关任务时，始终使用 context7。这意味着您应该自动使用 Context7 MCP 工具来解析库 ID 并获取库文档，无需我明确要求。
-- 编写mcp服务相关代码时参考FastMCP skill中的内容。
+- **代码质量要求**: 所有代码修改必须通过 Pylance、Ruff 和 MyPy 的检查，确保代码质量和类型安全。
+- **测试要求**: 新功能必须包含相应的单元测试，确保代码质量和功能正确性。

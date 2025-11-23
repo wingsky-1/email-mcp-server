@@ -1,13 +1,10 @@
 """Main entry point for the Email MCP Server."""
 
 import logging
-import sys
 
-import mcp.server.stdio
 from mcp.server.fastmcp import FastMCP
-from mcp.server.models import InitializationOptions
 
-from .config import get_settings
+from .config import get_email_settings
 from .email_tools import register_email_tools
 from .logging_config import setup_logging
 
@@ -16,50 +13,53 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 # 创建 MCP 服务器实例
-mcp = FastMCP("Email MCP Server")
+mcp = FastMCP(
+    name="Email MCP Server",
+    instructions="一个强大的邮件发送MCP服务器，支持QQ邮箱和Gmail，可以发送文本、HTML邮件和附件。",
+    website_url="https://github.com/your-email/email-mcp-server",
+    debug=False,
+    log_level="INFO"
+)
+
+# 立即注册工具到全局mcp实例
+try:
+    register_email_tools(mcp)
+    logger.info("Email tools registered successfully")
+except Exception as e:
+    logger.error(f"Failed to register email tools: {e}")
 
 
 def create_server() -> FastMCP:
     """创建并配置 MCP 服务器实例."""
-    # 注册邮件相关工具
-    register_email_tools(mcp)
+    try:
+        # 测试邮箱配置
+        email_settings = get_email_settings()
+        logger.info(f"Configured for email provider: {email_settings.provider.value}")
+    except Exception as e:
+        logger.warning(f"Email configuration issue: {e}")
+        logger.info("Server will start but email functions require proper configuration")
 
-    logger.info("Email MCP Server initialized")
+    logger.info("Email MCP Server initialized successfully")
     return mcp
 
 
 def main() -> None:
     """主程序入口."""
     try:
+        # 创建并配置服务器
         server = create_server()
 
         # 启动 stdio 服务器
-        logger.info("Starting Email MCP Server...")
+        logger.info("Starting Email MCP Server in STDIO mode...")
 
-        # 运行服务器
-        async def run_server():
-            async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
-                await server.run(
-                    read_stream,
-                    write_stream,
-                    InitializationOptions(
-                        server_name="email-mcp-server",
-                        server_version="0.1.0",
-                        capabilities=server.get_capabilities(
-                            notification_options=None, experimental_capabilities=None
-                        ),
-                    ),
-                )
-
-        import asyncio
-
-        asyncio.run(run_server())
+        # 使用 FastMCP 的内置 run 方法
+        server.run(transport="stdio")
 
     except KeyboardInterrupt:
         logger.info("Server stopped by user")
     except Exception as e:
         logger.error(f"Server error: {e}")
-        sys.exit(1)
+        raise
 
 
 if __name__ == "__main__":

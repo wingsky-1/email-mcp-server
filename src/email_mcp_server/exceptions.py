@@ -90,8 +90,9 @@ class EmailTimeoutError(NetworkError):
 
     def __init__(self, operation: str, timeout: int) -> None:
         super().__init__(
-            f"Operation {operation} timed out after {timeout} seconds", "TIMEOUT_ERROR"
+            f"Operation {operation} timed out after {timeout} seconds"
         )
+        self.error_code = "TIMEOUT_ERROR"
 
 
 # 错误代码映射

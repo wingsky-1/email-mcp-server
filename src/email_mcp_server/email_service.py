@@ -125,6 +125,9 @@ class EmailService:
                 recipients.extend(message.bcc)
 
             logger.info(f"Sending email to {len(recipients)} recipients")
+            if not self._connection:
+                raise EmailServiceError("No SMTP connection available")
+
             result = self._connection.sendmail(
                 self.settings.address, recipients, msg.as_string()
             )

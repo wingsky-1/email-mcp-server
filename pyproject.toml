@@ -21,7 +21,7 @@ dev = [
 ]
 
 [project.scripts]
-email-mcp-server = "email_mcp_server:main"
+email-mcp-server = "email_mcp_server.main:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -56,3 +56,9 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "types-requests>=2.32.4.20250913",
+]

@@ -5,14 +5,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from pydantic import BaseModel, Field, validator
-
-
-class EmailProvider(str, Enum):
-    """支持的邮箱服务提供商."""
-
-    QQ = "qq"
-    GMAIL = "gmail"
+import pydantic
+from pydantic import BaseModel, Field, field_validator
 
 
 class AttachmentType(str, Enum):
@@ -34,11 +28,11 @@ class SMTPConfig(BaseModel):
 class Attachment(BaseModel):
     """附件模型."""
 
-    path: str = Field(..., description="附件路径（本地路径或远程URL）")
-    type: AttachmentType = Field(..., description="附件类型")
-    filename: str | None = Field(None, description="文件名")
-    content_type: str | None = Field(None, description="MIME类型")
-    size: int | None = Field(None, description="文件大小（字节）")
+    path: str
+    type: AttachmentType
+    filename: str | None = None
+    content_type: str | None = None
+    size: int | None = None
 
     @classmethod
     def from_path(cls, path: str) -> Attachment:
@@ -48,10 +42,11 @@ class Attachment(BaseModel):
         else:
             return cls(path=path, type=AttachmentType.LOCAL)
 
-    @validator("path")
-    def validate_path(cls, v: str, values: dict[str, Any]) -> str:
+    @field_validator("path")
+    @classmethod
+    def validate_path(cls, v: str, info: pydantic.ValidationInfo) -> str:
         """验证路径格式."""
-        attachment_type = values.get("type")
+        attachment_type = info.data.get("type")
 
         if attachment_type == AttachmentType.LOCAL:
             # 验证本地路径格式
@@ -60,7 +55,7 @@ class Attachment(BaseModel):
                 if not path_obj.is_absolute():
                     raise ValueError("Local file path must be absolute")
             except Exception as e:
-                raise ValueError(f"Invalid local file path: {e}")
+                raise ValueError(f"Invalid local file path: {e}") from e
 
         elif attachment_type == AttachmentType.REMOTE:
             # 验证URL格式
@@ -69,7 +64,7 @@ class Attachment(BaseModel):
                 if not parsed.scheme or not parsed.netloc:
                     raise ValueError("Invalid URL format")
             except Exception as e:
-                raise ValueError(f"Invalid remote URL: {e}")
+                raise ValueError(f"Invalid remote URL: {e}") from e
 
         return v
 
@@ -87,7 +82,8 @@ class EmailMessage(BaseModel):
     reply_to: str | None = Field(None, description="回复邮箱")
     priority: int | None = Field(3, description="邮件优先级 (1-5)", ge=1, le=5)
 
-    @validator("to")
+    @field_validator("to")
+    @classmethod
     def validate_recipients(cls, v: list[str]) -> list[str]:
         """验证收件人邮箱格式."""
         if not v:
@@ -101,7 +97,8 @@ class EmailMessage(BaseModel):
 
         return validated_emails
 
-    @validator("cc")
+    @field_validator("cc")
+    @classmethod
     def validate_cc(cls, v: list[str] | None) -> list[str] | None:
         """验证抄送邮箱格式."""
         if v is None:
@@ -115,7 +112,8 @@ class EmailMessage(BaseModel):
 
         return validated_emails
 
-    @validator("bcc")
+    @field_validator("bcc")
+    @classmethod
     def validate_bcc(cls, v: list[str] | None) -> list[str] | None:
         """验证密送邮箱格式."""
         if v is None:
@@ -129,7 +127,8 @@ class EmailMessage(BaseModel):
 
         return validated_emails
 
-    @validator("reply_to")
+    @field_validator("reply_to")
+    @classmethod
     def validate_reply_to(cls, v: str | None) -> str | None:
         """验证回复邮箱格式."""
         if v is None:
@@ -153,10 +152,7 @@ class EmailMessage(BaseModel):
                 return False
 
             # 检查域名是否包含点
-            if "." not in domain:
-                return False
-
-            return True
+            return "." in domain
         except ValueError:
             return False
 
