@@ -193,11 +193,11 @@ class TestBuildConfirmationMessage:
 
         message = _build_confirmation_message(request)
 
-        assert "📧 准备发送邮件" in message
-        assert "📋 主题: Test Subject" in message
-        assert "👥 收件人: test@example.com" in message
-        assert "📝 内容预览: Test body content" in message
-        assert "⚠️  请确认是否发送此邮件？" in message
+        assert "准备发送邮件" in message
+        assert "主题: Test Subject" in message
+        assert "收件人: test@example.com" in message
+        assert "内容预览: Test body content" in message
+        assert "请确认是否发送此邮件？" in message
 
     def test_build_confirmation_message_with_cc_bcc(self):
         """测试包含抄送和密送的确认消息"""
@@ -211,8 +211,8 @@ class TestBuildConfirmationMessage:
 
         message = _build_confirmation_message(request)
 
-        assert "📄 抄送: cc@example.com" in message
-        assert "🔒 密送: bcc@example.com" in message
+        assert "抄送: cc@example.com" in message
+        assert "密送: bcc@example.com" in message
 
     def test_build_confirmation_message_with_reply_to(self):
         """测试包含回复地址的确认消息"""
@@ -225,7 +225,7 @@ class TestBuildConfirmationMessage:
 
         message = _build_confirmation_message(request)
 
-        assert "↩️ 回复至: reply@example.com" in message
+        assert "回复至: reply@example.com" in message
 
     def test_build_confirmation_message_with_priority(self):
         """测试不同优先级的确认消息"""
@@ -238,12 +238,12 @@ class TestBuildConfirmationMessage:
         )
 
         message = _build_confirmation_message(request)
-        assert "⚡ 优先级: 最高" in message
+        assert "优先级: 最高" in message
 
         # 测试低优先级
         request.priority = 4
         message = _build_confirmation_message(request)
-        assert "⚡ 优先级: 低" in message
+        assert "优先级: 低" in message
 
     def test_build_confirmation_message_with_attachments(self):
         """测试包含附件的确认消息"""
@@ -256,7 +256,7 @@ class TestBuildConfirmationMessage:
 
         message = _build_confirmation_message(request)
 
-        assert "📎 附件数量: 4" in message
+        assert "附件数量: 4" in message
         assert "1. file1.txt" in message
         assert "2. file2.pdf" in message
         assert "3. file3.jpg" in message
@@ -274,11 +274,11 @@ class TestBuildConfirmationMessage:
 
         message = _build_confirmation_message(request)
 
-        assert "📝 内容预览:" in message
+        assert "内容预览:" in message
         assert "..." in message  # 确认内容被截断
         # 验证预览长度不超过100字符 + "..."
-        preview_line = [line for line in message.split('\n') if '📝 内容预览:' in line][0]
-        preview_content = preview_line.split('📝 内容预览: ')[1]
+        preview_line = [line for line in message.split('\n') if '内容预览:' in line][0]
+        preview_content = preview_line.split('内容预览: ')[1]
         assert len(preview_content) <= 103  # 100 + "..."
 
 

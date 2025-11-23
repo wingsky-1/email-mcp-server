@@ -44,11 +44,11 @@ class TestEmailToolsFunctions:
 
         message = _build_confirmation_message(request)
 
-        assert "📧 准备发送邮件" in message
-        assert "📋 主题: Test Subject" in message
-        assert "👥 收件人: test@example.com" in message
-        assert "⚡ 优先级: 普通" in message
-        assert "📝 内容预览: Test body content" in message
+        assert "准备发送邮件" in message
+        assert "主题: Test Subject" in message
+        assert "收件人: test@example.com" in message
+        assert "优先级: 普通" in message
+        assert "内容预览: Test body content" in message
 
     @pytest.mark.unit
     def test_build_confirmation_message_with_all_fields(self):
@@ -67,15 +67,15 @@ class TestEmailToolsFunctions:
 
         message = _build_confirmation_message(request)
 
-        assert "📧 准备发送邮件" in message
-        assert "📋 主题: Full Test" in message
-        assert "👥 收件人: recipient@example.com" in message
-        assert "📄 抄送: cc@example.com" in message
-        assert "🔒 密送: bcc@example.com" in message
-        assert "↩️ 回复至: reply@example.com" in message
-        assert "⚡ 优先级: 最高" in message
-        assert "📝 内容预览: Body content" in message
-        assert "📎 附件数量: 4" in message
+        assert "准备发送邮件" in message
+        assert "主题: Full Test" in message
+        assert "收件人: recipient@example.com" in message
+        assert "抄送: cc@example.com" in message
+        assert "密送: bcc@example.com" in message
+        assert "回复至: reply@example.com" in message
+        assert "优先级: 最高" in message
+        assert "内容预览: Body content" in message
+        assert "附件数量: 4" in message
         assert "... 还有 1 个附件" in message  # 超过3个附件时显示省略
 
     @pytest.mark.unit
@@ -145,7 +145,7 @@ class TestConfirmationMessageBuilder:
                 priority=priority
             )
             message = _build_confirmation_message(request)
-            assert f"⚡ 优先级: {expected_name}" in message
+            assert f"优先级: {expected_name}" in message
 
     @pytest.mark.unit
     def test_attachment_preview_limit(self):
@@ -157,7 +157,7 @@ class TestConfirmationMessageBuilder:
             attachments=["file1.pdf", "file2.jpg", "file3.txt"]
         )
         message = _build_confirmation_message(request_3_attachments)
-        assert "📎 附件数量: 3" in message
+        assert "附件数量: 3" in message
         assert "1. file1.pdf" in message
         assert "2. file2.jpg" in message
         assert "3. file3.txt" in message
@@ -170,7 +170,7 @@ class TestConfirmationMessageBuilder:
             attachments=[f"file{i}.pdf" for i in range(10)]
         )
         message = _build_confirmation_message(request_many_attachments)
-        assert "📎 附件数量: 10" in message
+        assert "附件数量: 10" in message
         assert "1. file0.pdf" in message
         assert "2. file1.pdf" in message
         assert "3. file2.pdf" in message
