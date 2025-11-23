@@ -51,8 +51,7 @@ html_content = """
 send_email(
     to=["team@example.com"],
     subject="项目进度报告 - HTML格式",
-    body=html_content,
-    body_format="html"
+    html_body=html_content
 )
 ```
 
@@ -271,7 +270,7 @@ def send_project_progress_report():
         <div class="metrics">
             <h2>关键指标</h2>
             <ul>
-                <li>代码覆盖率: 85%</li>
+                <li>代码覆盖率: 87.22%</li>
                 <li>API响应时间: 平均120ms</li>
                 <li>Bug修复率: 92%</li>
             </ul>

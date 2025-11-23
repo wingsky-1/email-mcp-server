@@ -21,39 +21,50 @@ Email MCP 服务器通过 MCP (Model Context Protocol) 协议提供邮件发送�
 
 ```python
 @tool()
-def send_email(
-    to: List[str],
+async def send_email(
+    ctx: Context,
+    to: list[str],
     subject: str,
-    body: str,
-    cc: Optional[List[str]] = None,
-    bcc: Optional[List[str]] = None,
-    attachments: Optional[List[str]] = None,
-    body_format: Optional[str] = "plain",
-    priority: Optional[int] = 3
-) -> Dict[str, Any]
+    body: str | None = None,
+    html_body: str | None = None,
+    cc: list[str] | None = None,
+    bcc: list[str] | None = None,
+    attachments: list[str] | None = None,
+    reply_to: str | None = None,
+    priority: int = 3,
+    require_confirmation: bool | None = None,
+) -> dict[str, Any]
 ```
 
 **参数说明:**
 
 | 参数 | 类型 | 必需 | 默认值 | 说明 |
 |------|------|------|--------|------|
-| `to` | List[str] | [OK] | - | 收件人邮箱地址列表 |
-| `subject` | str | [OK] | - | 邮件主题 |
-| `body` | str | [OK] | - | 邮件正文内容 |
-| `cc` | List[str] | [X] | None | 抄送邮箱地址列表 |
-| `bcc` | List[str] | [X] | None | 密送邮箱地址列表 |
-| `attachments` | List[str] | [X] | None | 附件路径列表（支持本地文件和远程URL） |
-| `body_format` | str | [X] | "plain" | 邮件格式：`"plain"`（纯文本）或 `"html"`（HTML） |
-| `priority` | int | [X] | 3 | 邮件优先级：1（最高）- 5（最低） |
+| `ctx` | Context | [OK] | - | FastMCP 上下文对象，用于用户交互 |
+| `to` | list[str] | [OK] | - | 收件人邮箱地址列表，必须提供至少一个有效地址 |
+| `subject` | str | [OK] | - | 邮件主题，不能为空 |
+| `body` | str \| None | [X] | None | 邮件正文（纯文本格式） |
+| `html_body` | str \| None | [X] | None | 邮件正文（HTML格式） |
+| `cc` | list[str] \| None | [X] | None | 抄送邮箱地址列表 |
+| `bcc` | list[str] \| None | [X] | None | 密送邮箱地址列表 |
+| `attachments` | list[str] \| None | [X] | None | 附件路径列表（支持本地文件和远程URL） |
+| `reply_to` | str \| None | [X] | None | 回复邮箱地址 |
+| `priority` | int | [X] | 3 | 邮件优先级，范围1-5，1为最高优先级，5为最低优先级 |
+| `require_confirmation` | bool \| None | [X] | None | 是否需要用户确认发送。None表示使用全局设置，True表示强制要求确认，False表示跳过确认 |
 
 **返回值:**
 
 ```python
 {
-    "success": bool,           # 是否发送成功
-    "message": str,            # 状态消息
-    "message_id": Optional[str], # 邮件ID（如果成功）
-    "attachments": Optional[List[Dict[str, Any]]] # 附件处理结果
+    "success": bool,                    # 是否发送成功
+    "message": str,                     # 状态消息
+    "message_id": str,                  # 邮件ID（如果成功）
+    "recipients_count": int,            # 收件人数量
+    "attachments_processed": int,       # 已处理的附件数量
+    "status": str,                      # 发送状态
+    "error": Optional[str],             # 错误信息（如果失败）
+    "error_code": Optional[str],        # 错误代码（如果失败）
+    "error_type": Optional[str],        # 错误类型（如果失败）
 }
 ```
 
@@ -63,11 +74,11 @@ def send_email(
 {
     "to": ["recipient@example.com", "team@example.com"],
     "subject": "项目进度报告",
-    "body": "<h1>本周进展</h1><p>项目已完成80%...</p>",
-    "body_format": "html",
+    "html_body": "<h1>本周进展</h1><p>项目已完成80%...</p>",
     "cc": ["manager@example.com"],
     "attachments": ["/path/to/report.pdf", "https://example.com/data.xlsx"],
-    "priority": 2
+    "priority": 2,
+    "require_confirmation": true
 }
 ```
 
@@ -79,7 +90,7 @@ def send_email(
 
 ```python
 @tool()
-def validate_email(email: str) -> Dict[str, Any]
+async def validate_email(email: str) -> dict[str, Any]
 ```
 
 **参数说明:**
@@ -92,9 +103,9 @@ def validate_email(email: str) -> Dict[str, Any]
 
 ```python
 {
-    "valid": bool,        # 是否有效
-    "email": str,         # 原始邮箱地址
-    "normalized": str,    # 标准化后的邮箱地址
+    "success": bool,      # 操作是否成功
+    "valid": bool,        # 邮箱地址是否有效
+    "email": str,         # 邮箱地址
     "message": str        # 验证结果消息
 }
 ```
@@ -119,11 +130,19 @@ def validate_email(email: str) -> Dict[str, Any]
 
 ```python
 {
-    "configured": bool,                   # 是否已配置
-    "email_address": str,                 # 配置的邮箱地址
-    "provider": str,                      # 邮箱提供商
-    "connection_test": Dict[str, Any],    # 连接测试结果
-    "smtp_config": Dict[str, Any]         # SMTP配置信息
+    "success": bool,                    # 操作是否成功
+    "configured": bool,                 # 是否已配置
+    "provider": str,                     # 邮箱提供商
+    "smtp_server": str,                  # SMTP服务器地址
+    "smtp_port": int,                    # SMTP端口
+    "use_tls": bool,                     # 是否使用TLS
+    "use_ssl": bool,                     # 是否使用SSL
+    "connection_test": dict,             # 连接测试结果
+    "connected": bool,                   # 是否已连接
+    "message": str,                      # 状态消息
+    "error": Optional[str],              # 错误信息（如果失败）
+    "error_code": Optional[str],         # 错误代码（如果失败）
+    "error_type": Optional[str]          # 错误类型（如果失败）
 }
 ```
 
@@ -150,7 +169,10 @@ def validate_email(email: str) -> Dict[str, Any]
 
 ```python
 {
-    "providers": List[Dict[str, Any]]  # 提供商信息列表
+    "success": bool,                              # 操作是否成功
+    "supported_providers": List[Dict],             # 支持的提供商信息列表
+    "configuration": Dict,                         # 配置说明
+    "setup_steps": List[str]                       # 设置步骤
 }
 ```
 
@@ -158,13 +180,13 @@ def validate_email(email: str) -> Dict[str, Any]
 
 ```python
 {
-    "name": str,              # 提供商名称
-    "domains": List[str],     # 支持的域名
-    "smtp_server": str,       # SMTP服务器地址
-    "smtp_port": int,         # SMTP端口
-    "use_tls": bool,          # 是否使用TLS
-    "use_ssl": bool,          # 是否使用SSL
-    "description": str        # 描述信息
+    "name": str,                    # 提供商名称
+    "domain": str,                  # 主要域名
+    "smtp_server": str,             # SMTP服务器地址
+    "smtp_port": int,               # SMTP端口
+    "security": str,                # 安全类型（TLS/SSL）
+    "auth_required": str,           # 认证要求说明
+    "setup_notes": str              # 设置说明
 }
 ```
 
@@ -176,16 +198,21 @@ def validate_email(email: str) -> Dict[str, Any]
 
 ```python
 class SendEmailToolRequest(BaseModel):
-    """邮件发送工具请求模型"""
+    """MCP 发送邮件工具请求模型"""
 
-    to: List[str] = Field(..., description="收件人邮箱地址列表")
-    subject: str = Field(..., min_length=1, max_length=200, description="邮件主题")
-    body: str = Field(..., min_length=1, description="邮件正文内容")
-    cc: Optional[List[str]] = Field(None, description="抄送邮箱地址列表")
-    bcc: Optional[List[str]] = Field(None, description="密送邮箱地址列表")
-    attachments: Optional[List[str]] = Field(None, description="附件路径列表")
-    body_format: Optional[str] = Field("plain", regex="^(plain|html)$", description="邮件格式")
-    priority: Optional[int] = Field(3, ge=1, le=5, description="邮件优先级")
+    to: list[str] = Field(..., description="收件人邮箱地址列表", min_length=1)
+    subject: str = Field(..., description="邮件主题", min_length=1)
+    body: str | None = Field(None, description="邮件正文（纯文本格式）")
+    html_body: str | None = Field(None, description="邮件正文（HTML格式）")
+    cc: list[str] | None = Field(None, description="抄送邮箱地址列表")
+    bcc: list[str] | None = Field(None, description="密送邮箱地址列表")
+    attachments: list[str] | None = Field(None, description="附件路径列表")
+    reply_to: str | None = Field(None, description="���复邮箱地址")
+    priority: int = Field(default=3, description="邮件优先级", ge=1, le=5)
+    require_confirmation: bool | None = Field(
+        default=None,
+        description="是否需要用户确认发送。None表示使用全局设置，True表示强制要求确认，False表示跳过确认"
+    )
 ```
 
 ### EmailMessage
@@ -196,18 +223,21 @@ class SendEmailToolRequest(BaseModel):
 class EmailMessage(BaseModel):
     """邮件消息模型"""
 
-    to: List[str] = Field(..., description="收件人列表")
-    cc: Optional[List[str]] = Field(None, description="抄送列表")
-    bcc: Optional[List[str]] = Field(None, description="密送列表")
+    to: list[str] = Field(..., description="收件人邮箱地址列表")
     subject: str = Field(..., description="邮件主题")
-    body: str = Field(..., description="邮件正文")
-    body_format: str = Field("plain", description="邮件格式")
-    priority: int = Field(3, description="邮件优先级")
-    attachments: List["Attachment"] = Field(default_factory=list, description="附件列表")
+    body: str | None = Field(None, description="邮件正文")
+    html_body: str | None = Field(None, description="HTML格式的邮件正文")
+    cc: list[str] | None = Field(None, description="抄送邮箱地址列表")
+    bcc: list[str] | None = Field(None, description="密送邮箱地址列表")
+    attachments: list[Attachment] | None = Field(None, description="附件列表")
+    reply_to: str | None = Field(None, description="回复邮箱地址")
+    priority: int | None = Field(3, description="邮件优先级 (1-5)", ge=1, le=5)
 
-    def to_mime_message(self) -> MIMEMultipart:
-        """转换为MIME消息对象"""
-        pass
+    def has_attachments(self) -> bool:
+        """检查是否包含附件"""
+
+    def get_total_attachments_size(self) -> int:
+        """获取附件总大小"""
 ```
 
 ### Attachment
@@ -218,15 +248,20 @@ class EmailMessage(BaseModel):
 class Attachment(BaseModel):
     """附件模型"""
 
-    path: str = Field(..., description="附件路径")
-    name: Optional[str] = Field(None, description="附件名称")
-    size: int = Field(..., description="附件大小（字节）")
-    content_type: Optional[str] = Field(None, description="内容类型")
+    path: str                                    # 附件路径
+    type: AttachmentType                         # 附件类型（本地/远程）
+    filename: str | None = None                  # 文件名
+    content_type: str | None = None              # 内容类型
+    size: int | None = None                      # 文件大小（字节）
 
     @classmethod
-    def from_path(cls, path: str) -> "Attachment":
+    def from_path(cls, path: str) -> Attachment:
         """从路径创建附件对象"""
-        pass
+        # 自动检测本地文件或远程URL
+        if path.startswith(("http://", "https://")):
+            return cls(path=path, type=AttachmentType.REMOTE)
+        else:
+            return cls(path=path, type=AttachmentType.LOCAL)
 ```
 
 ### EmailSettings

@@ -75,7 +75,6 @@
 - [x] docs/EXAMPLES.md - 示例代码
 - [x] docs/FAQ.md - 常见问题
 - [x] docs/TROUBLESHOOTING.md - 故障排除
-- [x] docs/CURRENT_TEST_STATUS.md - 测试状态报告
 - [x] REQUIRE_CONFIRMATION_GUIDE.md - 确认功能指南
 - [x] 虚拟环境使用指南.md - 环境配置指南
 - [x] 测试划.md - 测试计划总结

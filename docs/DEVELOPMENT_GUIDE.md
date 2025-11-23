@@ -163,14 +163,14 @@ email-mcp-server/
 │   ├── __init__.py                 # 包初始化，版本信息
 │   ├── __main__.py                 # 模块入口点
 │   ├── main.py                     # 服务器主入口，MCP 协议处理
-│   ├── config.py                   # 配置管理 (92% 测试覆盖)
-│   ├── email_service.py            # 邮件服务核心 (86% 测试覆盖)
-│   ├── email_tools.py              # MCP 工具注册和实现
-│   ├── attachment_service.py       # 附件处理服务 (77% 测试覆盖)
-│   ├── models.py                   # 数据模型和验证 (90% 测试覆盖)
+│   ├── config.py                   # 配置管理 (89% 测试覆盖)
+│   ├── email_service.py            # 邮件服务核心 (97% 测试覆盖)
+│   ├── email_tools.py              # MCP 工具注册和实现 (61% 测试覆盖)
+│   ├── attachment_service.py       # 附件处理服务 (84% 测试覆盖)
+│   ├── models.py                   # 数据模型和验证 (92% 测试���盖)
 │   ├── exceptions.py               # 自定义异常定义
 │   └── logging_config.py           # 日志配置
-├── tests/                          # 测试文件 (73% 总覆盖率)
+├── tests/                          # 测试文件 (87.22% 总覆盖率)
 │   ├── __init__.py                 # 测试包初始化
 │   ├── conftest.py                 # pytest 配置和 fixtures
 │   ├── test_config.py              # 配置管理测试 (16/16 通过)
@@ -190,10 +190,9 @@ email-mcp-server/
 │   └── DEVELOPMENT_GUIDE.md        # 开发指南
 ├── .env.example                    # 环境变量模板
 ├── .env                            # 实际环境变量（不提交到版本控制）
-├── pyproject.toml                  # 项目配置和依赖
+├── pyproject.toml                  # 项目配置和依赖（包含Ruff配置）
 ├── pytest.ini                     # pytest 测试配置
 ├── mypy.ini                        # MyPy 类型检查配置
-├── ruff.toml                       # Ruff 代码检查配置
 ├── CHANGELOG.md                    # 变更日志
 ├── CONTRIBUTING.md                 # 贡献指南
 ├── README.md                       # 项目主文档
@@ -745,7 +744,7 @@ uv run pytest --cov=email_mcp_server --cov-report=html
 
 ### 发布检查清单
 - [ ] 所有测试通过
-- [ ] 代码覆盖率 ≥ 70%
+- [OK] 代码覆盖率 ≥ 87%
 - [ ] 文档已更新
 - [ ] 变更日志已更新
 - [ ] 版本号已更新
