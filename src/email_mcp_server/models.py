@@ -89,7 +89,7 @@ class EmailMessage(BaseModel):
         if not v:
             raise ValueError("At least one recipient is required")
 
-        validated_emails = []
+        validated_emails: list[str] = []
         for email in v:
             if not cls._is_valid_email(email):
                 raise ValueError(f"Invalid email address: {email}")
@@ -104,7 +104,7 @@ class EmailMessage(BaseModel):
         if v is None:
             return None
 
-        validated_emails = []
+        validated_emails: list[str] = []
         for email in v:
             if not cls._is_valid_email(email):
                 raise ValueError(f"Invalid CC email address: {email}")
@@ -119,7 +119,7 @@ class EmailMessage(BaseModel):
         if v is None:
             return None
 
-        validated_emails = []
+        validated_emails: list[str] = []
         for email in v:
             if not cls._is_valid_email(email):
                 raise ValueError(f"Invalid BCC email address: {email}")
