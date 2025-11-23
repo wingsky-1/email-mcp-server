@@ -75,4 +75,5 @@ start_server.bat
 
 ## 重要提示
 
-在进行代码生成、配置步骤或库/API 文档相关任务时，始终使用 context7。这意味着您应该自动使用 Context7 MCP 工具来解析库 ID 并获取库文档，无需我明确要求。
+- 在进行代码生成、配置步骤或库/API 文档相关任务时，始终使用 context7。这意味着您应该自动使用 Context7 MCP 工具来解析库 ID 并获取库文档，无需我明确要求。
+- 编写mcp服务相关代码时参考FastMCP skill中的内容。

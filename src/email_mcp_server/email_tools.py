@@ -1,20 +1,10 @@
 """Email MCP tools registration."""
 
-import logging
-from typing import Any, Dict, List, Optional
 
 from mcp.server.fastmcp import FastMCP
 from mcp.types import TextContent
 
-from .config import get_email_settings, get_app_settings
-from .models import (
-    EmailMessage,
-    Attachment,
-    AttachmentType,
-    SendEmailRequest,
-    SendEmailResponse,
-    EmailStatusResponse,
-)
+from .config import get_email_settings
 from .email_service import (
     EmailService,
     validate_email_address,
@@ -22,6 +12,12 @@ from .email_service import (
 )
 from .exceptions import EmailMCPServerError, format_error_response
 from .logging_config import get_logger
+from .models import (
+    Attachment,
+    EmailMessage,
+    EmailStatusResponse,
+    SendEmailResponse,
+)
 
 logger = get_logger(__name__)
 
@@ -31,14 +27,14 @@ def register_email_tools(mcp: FastMCP) -> None:
 
     @mcp.tool()
     async def send_email(
-        to: List[str],
+        to: list[str],
         subject: str,
-        body: Optional[str] = None,
-        html_body: Optional[str] = None,
-        cc: Optional[List[str]] = None,
-        bcc: Optional[List[str]] = None,
-        attachments: Optional[List[str]] = None,
-        reply_to: Optional[str] = None,
+        body: str | None = None,
+        html_body: str | None = None,
+        cc: list[str] | None = None,
+        bcc: list[str] | None = None,
+        attachments: list[str] | None = None,
+        reply_to: str | None = None,
         priority: int = 3,
     ) -> TextContent:
         """

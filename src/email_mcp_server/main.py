@@ -21,8 +21,6 @@ mcp = FastMCP("Email MCP Server")
 
 def create_server() -> FastMCP:
     """创建并配置 MCP 服务器实例."""
-    settings = get_settings()
-
     # 注册邮件相关工具
     register_email_tools(mcp)
 

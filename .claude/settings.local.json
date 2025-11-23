@@ -7,7 +7,12 @@
       "Bash(uv pip install:*)",
       "Bash(ruff check:*)",
       "Bash(source:*)",
-      "Bash(ruff format:*)"
+      "Bash(ruff format:*)",
+      "Bash(python -m ruff check:*)",
+      "Bash(uv run ruff check:*)",
+      "Bash(uv run:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv add:*)"
     ],
     "deny": [],
     "ask": []

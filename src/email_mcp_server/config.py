@@ -2,7 +2,8 @@
 
 from enum import Enum
 
-from pydantic import BaseSettings, Field, validator
+from pydantic import BaseModel, Field, validator
+from pydantic_settings import BaseSettings
 
 from .exceptions import ConfigurationError
 

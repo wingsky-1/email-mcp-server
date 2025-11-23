@@ -1,25 +1,24 @@
 """Email service implementation."""
 
+import re
 import smtplib
 import ssl
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
 from email.utils import formataddr
-from typing import List, Optional
-import logging
-import re
 
+from .attachment_service import AttachmentService
 from .config import get_email_settings
-from .models import EmailMessage, SMTPConfig
 from .exceptions import (
+    AuthenticationError,
     EmailServiceError,
     SMTPConnectionError,
-    AuthenticationError,
     ValidationError,
 )
 from .logging_config import get_logger
+from .models import Attachment, EmailMessage
 
 logger = get_logger(__name__)
 
@@ -30,7 +29,8 @@ class EmailService:
     def __init__(self) -> None:
         """初始化邮件服务."""
         self.settings = get_email_settings()
-        self._connection: Optional[smtplib.SMTP] = None
+        self._connection: smtplib.SMTP | None = None
+        self.attachment_service = AttachmentService()
 
     def connect(self) -> None:
         """连接到 SMTP 服务器."""
@@ -70,20 +70,20 @@ class EmailService:
                 if "535" in error_msg:  # 认证失败
                     raise AuthenticationError(
                         "Authentication failed. Check your email address and password."
-                    )
+                    ) from None
                 elif "530" in error_msg:  # 需要认证
                     raise AuthenticationError(
                         "Authentication required. Please enable SMTP service for your email."
-                    )
+                    ) from None
                 else:
-                    raise AuthenticationError(f"Authentication error: {error_msg}")
+                    raise AuthenticationError(f"Authentication error: {error_msg}") from e
 
         except smtplib.SMTPConnectError as e:
-            raise SMTPConnectionError(f"Failed to connect to SMTP server: {e}")
+            raise SMTPConnectionError(f"Failed to connect to SMTP server: {e}") from e
         except smtplib.SMTPServerDisconnected as e:
-            raise SMTPConnectionError(f"SMTP server disconnected: {e}")
+            raise SMTPConnectionError(f"SMTP server disconnected: {e}") from e
         except Exception as e:
-            raise SMTPConnectionError(f"Connection error: {e}")
+            raise SMTPConnectionError(f"Connection error: {e}") from e
 
     def disconnect(self) -> None:
         """断开 SMTP 连接."""
@@ -106,6 +106,7 @@ class EmailService:
             return False
         finally:
             self.disconnect()
+            self.attachment_service.cleanup_temp_files()
 
     def send_email(self, message: EmailMessage) -> str:
         """发送邮件."""
@@ -140,14 +141,14 @@ class EmailService:
             logger.info("Email sent successfully")
             return "sent"  # 返回消息ID或状态
 
-        except smtplib.SMTPRecipientsRefused as e:
-            raise EmailServiceError("All recipients were refused")
-        except smtplib.SMTPSenderRefused as e:
-            raise EmailServiceError("Sender address refused")
+        except smtplib.SMTPRecipientsRefused:
+            raise EmailServiceError("All recipients were refused") from None
+        except smtplib.SMTPSenderRefused:
+            raise EmailServiceError("Sender address refused") from None
         except smtplib.SMTPDataError as e:
-            raise EmailServiceError(f"Message data refused: {e}")
+            raise EmailServiceError(f"Message data refused: {e}") from e
         except Exception as e:
-            raise EmailServiceError(f"Failed to send email: {e}")
+            raise EmailServiceError(f"Failed to send email: {e}") from e
 
     def _create_email_message(self, message: EmailMessage) -> MIMEMultipart:
         """创建邮件消息对象."""
@@ -183,8 +184,9 @@ class EmailService:
             html_part = MIMEText(message.html_body, "html", "utf-8")
             msg.attach(html_part)
 
-        # 添加附件（将在阶段四实现）
-        # TODO: 实现附件处理
+        # 添加附件
+        if message.attachments:
+            self._add_attachments(msg, message.attachments)
 
         return msg
 
@@ -199,6 +201,41 @@ class EmailService:
             "use_ssl": smtp_config.use_ssl,
             "connected": self._connection is not None,
         }
+
+    def _add_attachments(self, msg: MIMEMultipart, attachments: list[Attachment]) -> None:
+        """添加附件到邮件."""
+        for attachment in attachments:
+            try:
+                # 处理附件
+                attachment_info = self.attachment_service.process_attachment(attachment)
+
+                # 创建 MIME 对象
+                part = MIMEBase("application", "octet-stream")
+                part.set_payload(attachment_info["data"])
+
+                # 编码附件
+                encoders.encode_base64(part)
+
+                # 添加文件头
+                part.add_header(
+                    "Content-Disposition",
+                    f"attachment; filename= {attachment_info['filename']}",
+                )
+
+                # 设置内容类型
+                part.set_type(attachment_info["content_type"])
+
+                # 添加到邮件
+                msg.attach(part)
+
+                logger.info(
+                    f"Added attachment: {attachment_info['filename']} "
+                    f"({attachment_info['size']} bytes)"
+                )
+
+            except Exception as e:
+                logger.error(f"Failed to add attachment {attachment.path}: {e}")
+                raise EmailServiceError(f"Failed to process attachment {attachment.path}: {e}") from e
 
 
 def validate_email_format(email: str) -> bool:
@@ -220,7 +257,7 @@ def validate_email_address(email: str) -> None:
         raise ValidationError(f"Invalid email format: {email}")
 
 
-def validate_multiple_emails(emails: List[str]) -> None:
+def validate_multiple_emails(emails: list[str]) -> None:
     """验证多个邮箱地址."""
     if not emails:
         raise ValidationError("Email list cannot be empty")
