@@ -5,7 +5,7 @@ REM 优先尝试使用 uv
 where uv >nul 2>nul
 if %ERRORLEVEL% == 0 (
     echo Using uv package manager...
-    uv run python -m email_mcp_server
+    uv run email-mcp-server
     goto end
 )
 
@@ -14,7 +14,7 @@ echo uv not found, using traditional virtual environment...
 if exist .venv\Scripts\activate.bat (
     echo Activating virtual environment...
     call .venv\Scripts\activate.bat
-    python -m email_mcp_server
+    email-mcp-server
 ) else (
     echo Virtual environment not found. Please run:
     echo   uv sync

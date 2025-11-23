@@ -316,3 +316,8 @@ drafts/
 # Test data
 test_emails/
 test_attachments/
+
+
+# ext
+.ruff_cache
+.serena

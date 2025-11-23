@@ -13,7 +13,12 @@
       "Bash(uv run:*)",
       "Bash(uv sync:*)",
       "Bash(uv add:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "mcp__context7__resolve-library-id",
+      "Skill(fastmcp)",
+      "Bash(timeout:*)",
+      "mcp__serena__list_dir",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

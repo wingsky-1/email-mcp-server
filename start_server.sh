@@ -5,7 +5,7 @@ echo "Starting Email MCP Server..."
 # 优先尝试使用 uv
 if command -v uv &> /dev/null; then
     echo "Using uv package manager..."
-    uv run python -m email_mcp_server
+    uv run email-mcp-server
 else
     # 回退到传统虚拟环境方式
     echo "uv not found, using traditional virtual environment..."
@@ -13,7 +13,7 @@ else
     if [ -f ".venv/bin/activate" ]; then
         echo "Activating virtual environment..."
         source .venv/bin/activate
-        python -m email_mcp_server
+        email-mcp-server
     else
         echo "Virtual environment not found. Please run:"
         echo "  uv sync"
