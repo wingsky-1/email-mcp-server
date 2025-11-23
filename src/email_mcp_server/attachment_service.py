@@ -22,7 +22,7 @@ from .exceptions import (
     NetworkError,
 )
 from .logging_config import get_logger
-from .models import Attachment, AttachmentType
+from .models import Attachment, AttachmentResult, AttachmentType
 
 logger = get_logger(__name__)
 
@@ -35,7 +35,7 @@ class AttachmentService:
         self.settings = get_app_settings()
         self.temp_files: list[str] = []
 
-    def process_attachment(self, attachment: Attachment) -> dict:
+    def process_attachment(self, attachment: Attachment) -> AttachmentResult:
         """
         处理附件，返回文件信息和文件对象。
 
@@ -57,7 +57,7 @@ class AttachmentService:
             logger.error(f"Failed to process attachment {attachment.path}: {e}")
             raise AttachmentError(f"Failed to process attachment: {e}") from e
 
-    def _process_local_attachment(self, attachment: Attachment) -> dict:
+    def _process_local_attachment(self, attachment: Attachment) -> AttachmentResult:
         """处理本地附件."""
         file_path = Path(attachment.path)
 
@@ -87,15 +87,15 @@ class AttachmentService:
         except Exception as e:
             raise AttachmentError(f"Failed to read local file {file_path}: {e}") from e
 
-        return {
-            "filename": filename,
-            "content_type": content_type,
-            "data": file_data,
-            "size": file_size,
-            "is_temp": False,
-        }
+        return AttachmentResult(
+            filename=filename,
+            content_type=content_type,
+            data=file_data,
+            size=file_size,
+            is_temp=False,
+        )
 
-    def _process_remote_attachment(self, attachment: Attachment) -> dict:
+    def _process_remote_attachment(self, attachment: Attachment) -> AttachmentResult:
         """处理远程附件."""
         url = attachment.path
 
@@ -107,9 +107,7 @@ class AttachmentService:
             file_size = os.path.getsize(temp_file_path)
             if file_size > self.settings.max_attachment_size:
                 os.unlink(temp_file_path)
-                raise FileSizeError(
-                    url, file_size, self.settings.max_attachment_size
-                )
+                raise FileSizeError(url, file_size, self.settings.max_attachment_size)
 
             # 确定文件名和MIME类型
             filename = attachment.filename or self._extract_filename_from_url(url)
@@ -127,13 +125,13 @@ class AttachmentService:
             # 清理临时文件
             os.unlink(temp_file_path)
 
-            return {
-                "filename": filename,
-                "content_type": content_type,
-                "data": file_data,
-                "size": file_size,
-                "is_temp": True,
-            }
+            return AttachmentResult(
+                filename=filename,
+                content_type=content_type,
+                data=file_data,
+                size=file_size,
+                is_temp=True,
+            )
 
         except Exception as e:
             # 清理临时文件
@@ -177,7 +175,10 @@ class AttachmentService:
 
             # 获取文件大小
             content_length = response.headers.get("content-length")
-            if content_length and int(content_length) > self.settings.max_attachment_size:
+            if (
+                content_length
+                and int(content_length) > self.settings.max_attachment_size
+            ):
                 raise FileSizeError(
                     url, int(content_length), self.settings.max_attachment_size
                 )
@@ -202,7 +203,9 @@ class AttachmentService:
             return temp_file_path
 
         except requests.exceptions.Timeout:
-            raise EmailTimeoutError("download", self.settings.download_timeout) from None
+            raise EmailTimeoutError(
+                "download", self.settings.download_timeout
+            ) from None
         except requests.exceptions.ConnectionError as e:
             raise NetworkError(f"Network error while downloading {url}: {e}") from e
         except requests.exceptions.HTTPError as e:
@@ -267,7 +270,9 @@ class AttachmentService:
                 if not parsed.scheme or not parsed.netloc:
                     raise AttachmentError("Invalid URL format") from None
                 if parsed.scheme not in ["http", "https"]:
-                    raise AttachmentError("Only HTTP and HTTPS URLs are supported") from None
+                    raise AttachmentError(
+                        "Only HTTP and HTTPS URLs are supported"
+                    ) from None
             except Exception as e:
                 raise AttachmentError(f"Invalid remote URL: {e}") from e
 

@@ -3,7 +3,7 @@
 from enum import Enum
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .exceptions import ConfigurationError
 
@@ -27,18 +27,20 @@ class SMTPConfig(BaseSettings):
 class EmailSettings(BaseSettings):
     """邮件设置."""
 
-    address: str = Field(..., env="EMAIL_ADDRESS", description="邮箱地址")
-    password: str = Field(..., env="EMAIL_PASSWORD", description="邮箱密码或授权码")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
+
+    address: str = Field(default=..., description="邮箱地址")
+    password: str = Field(default=..., description="邮箱密码或授权码")
 
     # 可选的 SMTP 配置（如果不提供将自动检测）
-    smtp_server: str | None = Field(None, env="SMTP_SERVER")
-    smtp_port: int | None = Field(None, env="SMTP_PORT")
-    smtp_use_tls: bool | None = Field(None, env="SMTP_USE_TLS")
-    smtp_use_ssl: bool | None = Field(None, env="SMTP_USE_SSL")
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    smtp_server: str | None = Field(default=None, alias="SMTP_SERVER")
+    smtp_port: int | None = Field(default=None, alias="SMTP_PORT")
+    smtp_use_tls: bool | None = Field(default=None, alias="SMTP_USE_TLS")
+    smtp_use_ssl: bool | None = Field(default=None, alias="SMTP_USE_SSL")
 
     @field_validator("address")
     @classmethod
@@ -89,24 +91,26 @@ class EmailSettings(BaseSettings):
 class AppSettings(BaseSettings):
     """应用设置."""
 
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
+
     # 日志设置
-    log_level: str = Field("INFO", env="LOG_LEVEL")
-    log_file: str | None = Field(None, env="LOG_FILE")
+    log_level: str = Field(default="INFO", alias="LOG_LEVEL")
+    log_file: str | None = Field(default=None, alias="LOG_FILE")
 
     # 文件处理设置
     max_attachment_size: int = Field(
-        25 * 1024 * 1024, env="MAX_ATTACHMENT_SIZE"
+        default=25 * 1024 * 1024, alias="MAX_ATTACHMENT_SIZE"
     )  # 25MB
-    temp_dir: str = Field("temp", env="TEMP_DIR")
-    download_timeout: int = Field(30, env="DOWNLOAD_TIMEOUT")  # 秒
-    max_retries: int = Field(3, env="MAX_RETRIES")
+    temp_dir: str = Field(default="temp", alias="TEMP_DIR")
+    download_timeout: int = Field(default=30, alias="DOWNLOAD_TIMEOUT")  # 秒
+    max_retries: int = Field(default=3, alias="MAX_RETRIES")
 
     # 确认设置
-    require_confirmation: bool = Field(False, env="REQUIRE_CONFIRMATION")
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    require_confirmation: bool = Field(default=False, alias="REQUIRE_CONFIRMATION")
 
 
 # 全局设置实例

@@ -18,7 +18,7 @@ from .exceptions import (
     ValidationError,
 )
 from .logging_config import get_logger
-from .models import Attachment, EmailMessage
+from .models import Attachment, ConnectionInfo, EmailMessage
 
 logger = get_logger(__name__)
 
@@ -76,7 +76,9 @@ class EmailService:
                         "Authentication required. Please enable SMTP service for your email."
                     ) from None
                 else:
-                    raise AuthenticationError(f"Authentication error: {error_msg}") from e
+                    raise AuthenticationError(
+                        f"Authentication error: {error_msg}"
+                    ) from e
 
         except smtplib.SMTPConnectError as e:
             raise SMTPConnectionError(f"Failed to connect to SMTP server: {e}") from e
@@ -193,28 +195,30 @@ class EmailService:
 
         return msg
 
-    def get_connection_info(self) -> dict:
+    def get_connection_info(self) -> ConnectionInfo:
         """获取连接信息（隐藏敏感信息）。"""
         smtp_config = self.settings.smtp_config
-        return {
-            "provider": self.settings.provider.value,
-            "smtp_server": smtp_config.server,
-            "smtp_port": smtp_config.port,
-            "use_tls": smtp_config.use_tls,
-            "use_ssl": smtp_config.use_ssl,
-            "connected": self._connection is not None,
-        }
+        return ConnectionInfo(
+            provider=self.settings.provider.value,
+            smtp_server=smtp_config.server,
+            smtp_port=smtp_config.port,
+            use_tls=smtp_config.use_tls,
+            use_ssl=smtp_config.use_ssl,
+            connected=self._connection is not None,
+        )
 
-    def _add_attachments(self, msg: MIMEMultipart, attachments: list[Attachment]) -> None:
+    def _add_attachments(
+        self, msg: MIMEMultipart, attachments: list[Attachment]
+    ) -> None:
         """添加附件到邮件."""
         for attachment in attachments:
             try:
                 # 处理附件
-                attachment_info = self.attachment_service.process_attachment(attachment)
+                attachment_result = self.attachment_service.process_attachment(attachment)
 
                 # 创建 MIME 对象
                 part = MIMEBase("application", "octet-stream")
-                part.set_payload(attachment_info["data"])
+                part.set_payload(attachment_result.data)
 
                 # 编码附件
                 encoders.encode_base64(part)
@@ -222,23 +226,25 @@ class EmailService:
                 # 添加文件头
                 part.add_header(
                     "Content-Disposition",
-                    f"attachment; filename= {attachment_info['filename']}",
+                    f"attachment; filename= {attachment_result.filename}",
                 )
 
                 # 设置内容类型
-                part.set_type(attachment_info["content_type"])
+                part.set_type(attachment_result.content_type)
 
                 # 添加到邮件
                 msg.attach(part)
 
                 logger.info(
-                    f"Added attachment: {attachment_info['filename']} "
-                    f"({attachment_info['size']} bytes)"
+                    f"Added attachment: {attachment_result.filename} "
+                    f"({attachment_result.size} bytes)"
                 )
 
             except Exception as e:
                 logger.error(f"Failed to add attachment {attachment.path}: {e}")
-                raise EmailServiceError(f"Failed to process attachment {attachment.path}: {e}") from e
+                raise EmailServiceError(
+                    f"Failed to process attachment {attachment.path}: {e}"
+                ) from e
 
 
 def validate_email_format(email: str) -> bool:

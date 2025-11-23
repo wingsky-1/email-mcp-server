@@ -18,7 +18,7 @@ mcp = FastMCP(
     instructions="一个强大的邮件发送MCP服务器，支持QQ邮箱和Gmail，可以发送文本、HTML邮件和附件。",
     website_url="https://github.com/your-email/email-mcp-server",
     debug=False,
-    log_level="INFO"
+    log_level="INFO",
 )
 
 # 立即注册工具到全局mcp实例
@@ -37,7 +37,9 @@ def create_server() -> FastMCP:
         logger.info(f"Configured for email provider: {email_settings.provider.value}")
     except Exception as e:
         logger.warning(f"Email configuration issue: {e}")
-        logger.info("Server will start but email functions require proper configuration")
+        logger.info(
+            "Server will start but email functions require proper configuration"
+        )
 
     logger.info("Email MCP Server initialized successfully")
     return mcp

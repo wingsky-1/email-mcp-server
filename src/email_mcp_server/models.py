@@ -16,6 +16,16 @@ class AttachmentType(str, Enum):
     REMOTE = "remote"
 
 
+class AttachmentResult(BaseModel):
+    """附件处理结果模型."""
+
+    filename: str = Field(..., description="文件名")
+    content_type: str = Field(..., description="MIME类型")
+    data: bytes = Field(..., description="文件数据")
+    size: int = Field(..., description="文件大小（字节）")
+    is_temp: bool = Field(..., description="是否为临时文件")
+
+
 class SMTPConfig(BaseModel):
     """SMTP 服务器配置."""
 
@@ -23,6 +33,17 @@ class SMTPConfig(BaseModel):
     port: int
     use_tls: bool = True
     use_ssl: bool = False
+
+
+class ConnectionInfo(BaseModel):
+    """连接信息模型."""
+
+    provider: str = Field(..., description="邮箱提供商")
+    smtp_server: str = Field(..., description="SMTP服务器")
+    smtp_port: int = Field(..., description="SMTP端口")
+    use_tls: bool = Field(..., description="是否使用TLS")
+    use_ssl: bool = Field(..., description="是否使用SSL")
+    connected: bool = Field(..., description="是否已连接")
 
 
 class Attachment(BaseModel):
@@ -181,6 +202,87 @@ class SendEmailRequest(BaseModel):
     timeout: int | None = Field(None, description="超时时间（秒）")
 
 
+class SendEmailToolRequest(BaseModel):
+    """MCP 发送邮件工具请求模型."""
+
+    to: list[str] = Field(..., description="收件人邮箱列表", min_length=1)
+    subject: str = Field(..., description="邮件主题", min_length=1)
+    body: str | None = Field(None, description="邮件正文（纯文本格式）")
+    html_body: str | None = Field(None, description="邮件正文（HTML格式）")
+    cc: list[str] | None = Field(None, description="抄送邮箱列表")
+    bcc: list[str] | None = Field(None, description="密送邮箱列表")
+    attachments: list[str] | None = Field(None, description="附件路径列表")
+    reply_to: str | None = Field(None, description="回复邮箱地址")
+    priority: int = Field(default=3, description="邮件优先级", ge=1, le=5)
+
+    @field_validator("to", "cc", "bcc")
+    @classmethod
+    def validate_email_lists(cls, v: list[str] | None) -> list[str] | None:
+        """验证邮箱列表格式."""
+        if v is None:
+            return None
+
+        validated_emails: list[str] = []
+        for email in v:
+            if not email or "@" not in email:
+                raise ValueError(f"Invalid email address: {email}")
+            validated_emails.append(email.lower())
+
+        return validated_emails
+
+    @field_validator("reply_to")
+    @classmethod
+    def validate_reply_to(cls, v: str | None) -> str | None:
+        """验证回复邮箱格式."""
+        if v is None:
+            return None
+
+        if not v or "@" not in v:
+            raise ValueError(f"Invalid reply-to email address: {v}")
+
+        return v.lower()
+
+    @field_validator("attachments")
+    @classmethod
+    def validate_attachments(cls, v: list[str] | None) -> list[str] | None:
+        """验证附件路径."""
+        if v is None:
+            return None
+
+        validated_paths: list[str] = []
+        for path in v:
+            if not path:
+                raise ValueError("Attachment path cannot be empty")
+
+            # 基本路径格式验证
+            if not (path.startswith(("http://", "https://", "/", "C:", "D:", "E:", "F:", "G:", "H:")) or path.startswith(("./", "../", "\\"))):
+                # 相对路径也允许
+                pass
+
+            validated_paths.append(path)
+
+        return validated_paths
+
+    def to_email_message(self) -> EmailMessage:
+        """转换为 EmailMessage 对象."""
+        # 处理附件
+        message_attachments = None
+        if self.attachments:
+            message_attachments = [Attachment.from_path(path) for path in self.attachments]
+
+        return EmailMessage(
+            to=self.to,
+            subject=self.subject,
+            body=self.body,
+            html_body=self.html_body,
+            cc=self.cc,
+            bcc=self.bcc,
+            attachments=message_attachments,
+            reply_to=self.reply_to,
+            priority=self.priority,
+        )
+
+
 class SendEmailResponse(BaseModel):
     """发送邮件响应模型."""
 
@@ -203,6 +305,50 @@ class EmailConfirmationResponse(BaseModel):
 
     confirmed: bool = Field(..., description="是否确认发送")
     message: str | None = Field(None, description="用户消息")
+
+
+class EmailValidationResponse(BaseModel):
+    """邮箱验证响应模型."""
+
+    success: bool = Field(..., description="操作是否成功")
+    valid: bool = Field(..., description="邮箱地址是否有效")
+    email: str = Field(..., description="验证的邮箱地址")
+    message: str = Field(..., description="验证结果消息")
+
+
+class ProviderInfo(BaseModel):
+    """邮箱提供商信息模型."""
+
+    name: str = Field(..., description="提供商名称")
+    domain: str = Field(..., description="域名")
+    smtp_server: str = Field(..., description="SMTP服务器地址")
+    smtp_port: int = Field(..., description="SMTP端口")
+    security: str = Field(..., description="安全类型")
+    auth_required: str = Field(..., description="认证要求")
+    setup_notes: str = Field(..., description="设置说明")
+
+
+class SupportedProvidersResponse(BaseModel):
+    """支持的邮箱提供商响应模型."""
+
+    success: bool = Field(..., description="操作是否成功")
+    supported_providers: list[ProviderInfo] = Field(..., description="支持的提供商列表")
+
+
+class EmailValidationRequest(BaseModel):
+    """邮箱验证请求模型."""
+
+    email: str = Field(..., description="要验证的邮箱地址", min_length=1)
+
+
+class CheckEmailConfigRequest(BaseModel):
+    """检查邮箱配置请求模型."""
+    pass  # 无需参数
+
+
+class GetSupportedProvidersRequest(BaseModel):
+    """获取支持的提供商请求模型."""
+    pass  # 无需参数
 
 
 class EmailStatusResponse(BaseModel):

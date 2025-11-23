@@ -1,5 +1,7 @@
 """Custom exceptions for the Email MCP Server."""
 
+from typing import Any
+
 
 class EmailMCPServerError(Exception):
     """Base exception for all Email MCP Server errors."""
@@ -89,9 +91,7 @@ class EmailTimeoutError(NetworkError):
     """Timeout errors."""
 
     def __init__(self, operation: str, timeout: int) -> None:
-        super().__init__(
-            f"Operation {operation} timed out after {timeout} seconds"
-        )
+        super().__init__(f"Operation {operation} timed out after {timeout} seconds")
         self.error_code = "TIMEOUT_ERROR"
 
 
@@ -159,7 +159,7 @@ ERROR_CODES = {
 }
 
 
-def get_error_info(error_code: str) -> dict:
+def get_error_info(error_code: str) -> dict[str, str]:
     """获取错误代码信息."""
     return ERROR_CODES.get(
         error_code,
@@ -171,7 +171,7 @@ def get_error_info(error_code: str) -> dict:
     )
 
 
-def format_error_response(exception: EmailMCPServerError) -> dict:
+def format_error_response(exception: EmailMCPServerError) -> dict[str, Any]:
     """格式化错误响应."""
     error_info = (
         get_error_info(exception.error_code)
