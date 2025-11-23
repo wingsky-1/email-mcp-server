@@ -6,13 +6,13 @@
 
 ## 功能特点
 
-- ✅ 基于环境变量的全局确认开关
-- ✅ 参数级确认控制，可覆盖全局设置
-- ✅ 使用 FastMCP 的 `ctx.elicit()` 实现用户交互
-- ✅ 详细的邮件信息预览
-- ✅ 支持用户确认或取消操作
-- ✅ 完整的错误处理和状态反馈
-- ✅ 全面的单元测试覆盖
+- [OK] 基于环境变量的全局确认开关
+- [OK] 参数级确认控制，可覆盖全局设置
+- [OK] 使用 FastMCP 的 `ctx.elicit()` 实现用户交互
+- [OK] 详细的邮件信息预览
+- [OK] 支持用户确认或取消操作
+- [OK] 完整的错误处理和状态反馈
+- [OK] 全面的单元测试覆盖
 
 ## 配置方法
 
@@ -166,20 +166,20 @@ send_email(
 当启用确认功能时，系统会显示包含以下信息的确认消息：
 
 ```
-📧 准备发送邮件
+邮件 准备发送邮件
 ========================================
-📋 主题: 邮件主题
-👥 收件人: recipient1@example.com, recipient2@example.com
-📄 抄送: cc@example.com
-🔒 密送: bcc@example.com
-↩️ 回复至: reply@example.com
-⚡ 优先级: 高
-📝 内容预览: 邮件内容的前100个字符...
-📎 附件数量: 2
+[SCANNER] 主题: 邮件主题
+ 收件人: recipient1@example.com, recipient2@example.com
+文件 抄送: cc@example.com
+[LOCK] 密送: bcc@example.com
+ 回复至: reply@example.com
+[BOLT] 优先级: 高
+[EDIT] 内容预览: 邮件内容的前100个字符...
+ 附件数量: 2
    1. file1.pdf
    2. file2.doc
 ========================================
-⚠️  请确认是否发送此邮件？
+[WARNING]  请确认是否发送此邮件？
 ```
 
 ## API 响应
@@ -287,7 +287,7 @@ if _should_require_confirmation(request.require_confirmation, app_settings.requi
     # 处理用户响应...
 ```
 
-### 参数级���制实现
+### 参数级新增制实现
 
 在 `SendEmailToolRequest` 模型中添加了可选的 `require_confirmation` 参数：
 
@@ -321,21 +321,21 @@ uv run pytest tests/test_require_confirmation.py tests/test_parameter_confirmati
 ### 测试覆盖
 
 **全局功能测试 (`test_require_confirmation.py`)：**
-- ✅ 确认启用时的接受流程
-- ✅ 确认启用时的取消流程
-- ✅ 确认禁用时的直接发送
-- ✅ 确认消息格式验证
-- ✅ 不同邮件字段的处理
-- ✅ 长内容的截断处理
-- ✅ 附件信息的展示
+- [OK] 确认启用时的接受流程
+- [OK] 确认启用时的取消流程
+- [OK] 确认禁用时的直接发送
+- [OK] 确认消息格式验证
+- [OK] 不同邮件字段的处理
+- [OK] 长内容的截断处理
+- [OK] 附件信息的展示
 
 **参数级功能测试 (`test_parameter_confirmation.py`)：**
-- ✅ `_should_require_confirmation` 函数逻辑测试
-- ✅ 参数 True 覆盖全局 False 设置
-- ✅ 参数 False 覆盖全局 True 设置
-- ✅ 参数 None 使用全局设置
-- ✅ `SendEmailToolRequest` 模型参数验证
-- ✅ 参数与全局设置的各种组合测试
+- [OK] `_should_require_confirmation` 函数逻辑测试
+- [OK] 参数 True 覆盖全局 False 设置
+- [OK] 参数 False 覆盖全局 True 设置
+- [OK] 参数 None 使用全局设置
+- [OK] `SendEmailToolRequest` 模型参数验证
+- [OK] 参数与全局设置的各种组合测试
 
 ## 故障排除
 

@@ -2,13 +2,13 @@
 
 本指南详细说明如何在各种 AI 开发环境中配置和使用 Email MCP 服务器。
 
-## 📋 前置条件
+## [SCANNER] 前置条件
 
 1. **已完成 Email MCP 服务器安装**
 2. **已配置邮箱凭据**（.env 文件）
 3. **已安装 Python 3.14+ 和 uv**
 
-## 🔧 环境配置
+## [TOOLS] 环境配置
 
 ### 1. 邮箱凭据配置
 
@@ -41,7 +41,7 @@ MAX_RETRIES=3
 3. 生成应用专用密码
 4. 使用应用专用密码作为 EMAIL_PASSWORD
 
-## 🤖 Claude Code 配置
+##  Claude Code 配置
 
 ### 方法一：通过设置界面
 
@@ -91,14 +91,14 @@ MAX_RETRIES=3
 
 Claude 应该能够调用 `check_email_config` 工具并返回配置信息。
 
-## 🎯 Cursor 配置
+## [TARGET] Cursor 配置
 
 ### 步骤 1：打开设置
 
 1. 按 `Ctrl/Cmd + ,` 打开设置
 2. 搜索 "MCP" 或 "Model Context Protocol"
 
-### 步骤 2：添加服务���配置
+### 步骤 2：添加服务新增配置
 
 ```json
 {
@@ -130,7 +130,7 @@ Claude 应该能够调用 `check_email_config` 工具并返回配置信息。
 请验证邮箱地址 test@example.com 的格式是否正确
 ```
 
-## 💻 VS Code 配置
+## [LAPTOP] VS Code 配置
 
 ### 安装必要扩展
 
@@ -181,7 +181,7 @@ Claude 应该能够调用 `check_email_config` 工具并返回配置信息。
 }
 ```
 
-## 🐳 Docker 部署配置
+## [DOCKER] Docker 部署配置
 
 ### 创建 Dockerfile
 
@@ -240,7 +240,7 @@ services:
     restart: unless-stopped
 ```
 
-## 🔌 其他 MCP 客户端
+## [PLUG] 其他 MCP 客户端
 
 ### 直接 stdio 连接
 
@@ -372,7 +372,7 @@ const client = new EmailMCPClient('/path/to/email-mcp-server');
 })();
 ```
 
-## 🧪 测试 MCP 连接
+##  测试 MCP 连接
 
 ### 验证服务器启动
 
@@ -406,7 +406,7 @@ uv run python -m email_mcp_server
    请给 test@example.com 发送一封测试邮件，主题是"MCP 测试"
    ```
 
-## 🔧 故障排除
+## [TOOLS] 故障排除
 
 ### 常见问题
 
@@ -449,7 +449,7 @@ tail -f email_mcp.log
 export LOG_FILE=/path/to/debug.log
 ```
 
-## 📚 进一步资源
+## [BOOKS] 进一步资源
 
 - [MCP 协议规范](https://spec.modelcontextprotocol.io/)
 - [Claude Code 文档](https://docs.anthropic.com/claude/docs/claude-code)

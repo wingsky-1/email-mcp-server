@@ -2,11 +2,11 @@
 
 感谢您对 Email MCP 服务器项目的关注！我们欢迎所有形式的贡献，包括但不限于：
 
-- 🐛 Bug 报告
-- ✨ 新功能建议
-- 📝 文档改进
-- 🔧 代码贡献
-- 🧪 测试用例
+-  Bug 报告
+- [SPARKLE] 新功能建议
+- [EDIT] 文档改进
+- [TOOLS] 代码贡献
+-  测试用例
 
 ## 开始之前
 
@@ -29,7 +29,7 @@ email-mcp-server/
 │   ├── config.py                   # 配置管理（92%测试覆盖）
 │   ├── email_service.py            # 邮件服务核心（86%测试覆盖）
 │   ├── attachment_service.py       # 附件处理（77%测试覆盖）
-│   ├── models.py                   # 数据模型（90%测��覆盖）
+│   ├── models.py                   # 数据模型（90%测覆盖）
 │   ├── email_tools.py              # MCP工具注册
 │   └── exceptions.py               # 自定义异常
 ├── tests/                          # 测试文件（73%总体覆盖率）
@@ -115,10 +115,10 @@ git checkout -b fix/bug-description
 ### 2. 开发和测试
 
 **代码质量标准:**
-- ✅ **Ruff 检查通过**: `uv run ruff check src/`
-- ✅ **MyPy 类型检查通过**: `uv run mypy src/`
-- ✅ **Pylance 静态分析通过**: IDE中无警告和错误
-- ✅ **测试覆盖率不下降**: 目标维持 73%+ 覆盖率
+- [OK] **Ruff 检查通过**: `uv run ruff check src/`
+- [OK] **MyPy 类型检查通过**: `uv run mypy src/`
+- [OK] **Pylance 静态分析通过**: IDE中无警告和错误
+- [OK] **测试覆盖率不下降**: 目标维持 73%+ 覆盖率
 
 **开发过程中定期运行:**
 ```bash
@@ -273,7 +273,7 @@ uv run pytest -m "not slow"
 
 ## 特殊贡献类型
 
-### 🐛 Bug 报告
+###  Bug 报告
 
 使用 GitHub Issues 报告 bug，请包含：
 
@@ -295,14 +295,14 @@ uv run pytest -m "not slow"
    - 配置文件（去除敏感信息）
    - 相关截图
 
-### ✨ 功能建议
+### [SPARKLE] 功能建议
 
 1. **问题描述**: 清晰描述要解决的问题
 2. **建议方案**: 详细的解决方案
 3. **替代方案**: 考虑的其他方案
 4. **附加信息**: 任何相关的上下文
 
-### 📝 文档贡献
+### [EDIT] 文档贡献
 
 1. **文档类型**:
    - API 文档
@@ -409,4 +409,4 @@ uv run pytest --cov=email_mcp_server  # 测试覆盖率
 
 ---
 
-感谢您的贡献！🎉
+感谢您的贡献！[STAR]

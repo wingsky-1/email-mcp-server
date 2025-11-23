@@ -335,36 +335,36 @@ def _build_confirmation_message(request: SendEmailToolRequest) -> str:
         格式化的确认消息字符串
     """
     lines = [
-        "📧 准备发送邮件",
+        " 准备发送邮件",
         "=" * 40,
-        f"📋 主题: {request.subject}",
-        f"👥 收件人: {', '.join(request.to)}",
+        f" 主题: {request.subject}",
+        f" 收件人: {', '.join(request.to)}",
     ]
 
     if request.cc:
-        lines.append(f"📄 抄送: {', '.join(request.cc)}")
+        lines.append(f" 抄送: {', '.join(request.cc)}")
 
     if request.bcc:
-        lines.append(f"🔒 密送: {', '.join(request.bcc)}")
+        lines.append(f" 密送: {', '.join(request.bcc)}")
 
     if request.reply_to:
-        lines.append(f"↩️ 回复至: {request.reply_to}")
+        lines.append(f" 回复至: {request.reply_to}")
 
     # 优先级
     priority_names = {1: "最高", 2: "高", 3: "普通", 4: "低", 5: "最低"}
     priority_name = priority_names.get(request.priority, "普通")
-    lines.append(f"⚡ 优先级: {priority_name}")
+    lines.append(f" 优先级: {priority_name}")
 
     # 邮件内容预览
     content_preview = request.body or request.html_body or ""
     if content_preview:
         # 限制预览长度
         preview = content_preview[:100] + "..." if len(content_preview) > 100 else content_preview
-        lines.append(f"📝 内容预览: {preview}")
+        lines.append(f" 内容预览: {preview}")
 
     # 附件信息
     if request.attachments:
-        lines.append(f"📎 附件数量: {len(request.attachments)}")
+        lines.append(f" 附件数量: {len(request.attachments)}")
         for i, attachment in enumerate(request.attachments[:3], 1):  # 最多显示3个附件
             lines.append(f"   {i}. {attachment}")
         if len(request.attachments) > 3:
@@ -372,7 +372,7 @@ def _build_confirmation_message(request: SendEmailToolRequest) -> str:
 
     lines.extend([
         "=" * 40,
-        "⚠️  请确认是否发送此邮件？",
+        "  请确认是否发送此邮件？",
     ])
 
     return "\n".join(lines)

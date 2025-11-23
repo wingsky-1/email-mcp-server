@@ -4,17 +4,18 @@
 
 ## 功能特性
 
-- ✅ 支持 QQ 邮箱和 Gmail
-- ✅ 多收件人支持（To、Cc、Bcc）
-- ✅ 本地和远程附件支持
-- ✅ 完整的错误处理和重试机制
-- ✅ STDIO 方式的 MCP 协议通信
-- ✅ 自动 SMTP 服务器配置
-- ✅ 邮件优先级设置
-- ✅ HTML 和纯文本邮件支持
-- ✅ **73% 测试覆盖率**，企业级代码质量
-- ✅ **99 个测试用例**，涵盖核心功能
-- ✅ **完整类型注解**，通过 MyPy 严格检查
+- [OK] 支持 QQ 邮箱和 Gmail
+- [OK] 多收件人支持（To、Cc、Bcc）
+- [OK] 本地和远程附件支持
+- [OK] 完整的错误处理和重试机制
+- [OK] STDIO 方式的 MCP 协议通信
+- [OK] 自动 SMTP 服务器配置
+- [OK] 邮件优先级设置
+- [OK] HTML 和纯文本邮件支持
+- [OK] **交互式邮件确认**：发送前预览并确认邮件内容
+- [OK] **80.4% 测试覆盖率**，企业级代码质量
+- [OK] **134 个测试用例**，130 个通过（97.0% 通过率）
+- [OK] **完整类型注解**，通过 MyPy 严格检查
 
 ## 快速开始
 
@@ -265,6 +266,7 @@ docker run --rm -it email-mcp-server
    - 支持多个收件人（To、Cc、Bcc）
    - 支持本地和远程附件
    - 支持 HTML 和纯文本内容
+   - **支持交互式确认**：可配置发送前确认
 
 2. **validate_email** - 验证邮箱地址格式
 
@@ -294,6 +296,61 @@ send_email(
     attachments=["https://example.com/file.pdf"]
 )
 ```
+
+### [LOCK] 交互式邮件确认
+
+Email MCP 服务器支持交互式确认功能，可以在发送邮件前预览邮件内容并进行确认：
+
+#### 全局确认配置
+
+在 `.env` 文件中设置全局确认开关：
+
+```env
+# 启用全局邮件确认
+REQUIRE_CONFIRMATION=true
+
+# 禁用全局邮件确认（默认）
+# REQUIRE_CONFIRMATION=false
+```
+
+#### 参数级确认控制
+
+在发送邮件时可以覆盖全局设置：
+
+```python
+# 强制要求确认（覆盖全局设置）
+send_email(
+    to=["recipient@example.com"],
+    subject="重要邮件",
+    body="邮件内容",
+    require_confirmation=True
+)
+
+# 跳过确认（覆盖全局设置）
+send_email(
+    to=["recipient@example.com"],
+    subject="批量通知",
+    body="邮件内容",
+    require_confirmation=False
+)
+```
+
+#### 确认流程示例
+
+当启用确认功能时，邮件发送过程如下：
+
+1. **邮件预览**：显示完整的邮件信息（收件人、主题、正文、附件等）
+2. **用户确认**：用户可以选择确认发送或取消操作
+3. **执行发送**：确认后立即发送邮件，取消则终止操作
+
+#### 配置优先级
+
+确认功能的优先级顺序：
+1. **参数级设置**（`require_confirmation` 参数）- 最高优先级
+2. **全局环境变量**（`REQUIRE_CONFIRMATION`）- 中等优先级
+3. **默认设置**（`false`）- 最低优先级
+
+> [LIGHTBULB] **提示**：详细的交互式确认配置和使用说明，请参考 [确认功能指南](REQUIRE_CONFIRMATION_GUIDE.md)
 
 ## 开发
 
@@ -337,7 +394,7 @@ mypy src/
 
 ### 测试
 
-我们的项目具有 **73% 的测试覆盖率**，包含 99 个测试用例，确保代码质量和功能可靠性。
+我们的项目具有 **80.4% 的测试覆盖率**，包含 134 个测试用例（130 个通过，97.0% 通过率），确保代码质量和功能可靠性。核心功能已达到生产就绪标准。
 
 #### 使用 uv（推荐）
 ```bash
@@ -355,12 +412,15 @@ uv run pytest tests/test_models.py             # 数据模型测试
 ```
 
 #### 测试覆盖率详情
-- **Config**: 92% 覆盖率 (16/16 测试通过)
-- **Models**: 90% 覆盖率 (28/28 测试通过)
-- **EmailService**: 86% 覆盖率 (22/29 测试通过)
-- **AttachmentService**: 77% 覆盖率 (9/19 测试通过)
-- **Exceptions**: 83% 覆盖率
-- **Overall**: 73% 覆盖率 (80/99 测试通过)
+- **Models**: 92% 覆盖率 (216 语句，18 未覆盖)
+- **Config**: 92% 覆盖率 (65 语句，5 未覆盖)
+- **Main**: 98% 覆盖率 (40 语句，1 未覆盖)
+- **AttachmentService**: 84% 覆盖率 (142 语句，23 未覆盖)
+- **Exceptions**: 89% 覆盖率 (46 语句，5 未覆盖)
+- **LoggingConfig**: 89% 覆盖率 (28 语句，3 未覆盖)
+- **EmailService**: 61% 覆盖率 (152 语句，60 未覆盖)
+- **EmailTools**: 61% 覆盖率 (93 语句，36 未覆盖)
+- **Overall**: 80.4% 覆盖率 (786 语句，154 未覆盖，97.0% 通过率)
 
 #### 使用传统方式
 ```bash
@@ -409,56 +469,54 @@ email-mcp-server/
 └── README.md                       # 项目说明
 ```
 
-## 📚 完整文档
+## 完整文档
 
 我们提供了全面的文档来帮助您更好地使用 Email MCP 服务器：
 
-### 📖 文档中心
-- **[📋 文档中心](docs/README.md)** - 所有文档的导航中心
+### 文档中心
+- **[文档中心](docs/README.md)** - 所有文档的导航中心
 
-### 🚀 快速开始
-- **[⚙️ 配置指南](docs/CONFIGURATION.md)** - 详细的配置参数和最佳实践
-- **[🔌 MCP 客户端配置](docs/MCP_CLIENT_SETUP.md)** - Claude Code、Cursor、VS Code 等配置
-- **[💻 示例代码](docs/EXAMPLES.md)** - 丰富的使用示例和实际场景
+### 快速开始
+- **[配置指南](docs/CONFIGURATION.md)** - 详细的配置参数和最佳实践
+- **[MCP 客户端配置](docs/MCP_CLIENT_SETUP.md)** - Claude Code、Cursor、VS Code 等配置
+- **[示例代码](docs/EXAMPLES.md)** - 丰富的使用示例和实际场景
 
-### 🔧 开发指南
-- **[👨‍💻 开发指南](docs/DEVELOPMENT_GUIDE.md)** - 开发环境搭建和贡献指南
-- **[📝 贡献指南](CONTRIBUTING.md)** - 如何参与项目开发
-- **[🧪 测试指南](docs/DEVELOPMENT_GUIDE.md#测试开发)** - 测试编写和执行
+### 开发指南
+- **[开发指南](docs/DEVELOPMENT_GUIDE.md)** - 开发环境搭建和贡献指南
+- **[贡献指南](CONTRIBUTING.md)** - 如何参与项目开发
+- **[测试指南](docs/DEVELOPMENT_GUIDE.md#测试开发)** - 测试编写和执行
 
-### 📚 参考资料
-- **[🔍 API 文档](docs/API.md)** - 完整的 API 接口说明
-- **[❓ 常见问题](docs/FAQ.md)** - 常见问题解答
-- **[🚨 故障排除](docs/TROUBLESHOOTING.md)** - 问题诊断和解决方案
-- **[📖 变更日志](CHANGELOG.md)** - 版本更新记录
+### 参考资料
+- **[API 文档](docs/API.md)** - 完整的 API 接口说明
+- **[常见问题](docs/FAQ.md)** - 常见问题解答
+- **[故障排除](docs/TROUBLESHOOTING.md)** - 问题诊断和解决方案
+- **[变更日志](CHANGELOG.md)** - 版本更新记录
 
-### 📋 其他文档
-- **[✅ 确认功能指南](REQUIRE_CONFIRMATION_GUIDE.md)** - require_confirmation 功能详解
-- **[🐍 虚拟环境指南](虚拟环境使用指南.md)** - uv 和 venv 使用指南
-- **[📊 测试计划](测试计划.md)** - 项目测试现状和报告
+### 其他文档
+- **[确认功能指南](REQUIRE_CONFIRMATION_GUIDE.md)** - require_confirmation 功能详解
+- **[虚拟环境指南](虚拟环境使用指南.md)** - uv 和 venv 使用指南
+- **[测试计划](测试计划.md)** - 项目测试现状和报告
 
-## 🔍 快速导航
+## 快速导航
 
 | 用户类型 | 推荐阅读 | 链接 |
 |---------|---------|------|
-| 👶 **初学者** | 安装配置 → 基本使用 | [配置指南](docs/CONFIGURATION.md) → [示例代码](docs/EXAMPLES.md) |
-| 🔧 **系统管理员** | 邮箱配置 → 安全设置 | [配置指南](docs/CONFIGURATION.md) → [故障排除](docs/TROUBLESHOOTING.md) |
-| 👨‍💻 **开发者** | 开发环境 → API 使用 | [开发指南](docs/DEVELOPMENT_GUIDE.md) → [API 文档](docs/API.md) |
-| 🚀 **DevOps** | 部署配置 → 监控运维 | [故障排除](docs/TROUBLESHOOTING.md) → [FAQ](docs/FAQ.md) |
+| **初学者** | 安装配置 → 基本使用 | [配置指南](docs/CONFIGURATION.md) → [示例代码](docs/EXAMPLES.md) |
+| **系统管理员** | 邮箱配置 → 安全设置 | [配置指南](docs/CONFIGURATION.md) → [故障排除](docs/TROUBLESHOOTING.md) |
+| **开发者** | 开发环境 → API 使用 | [开发指南](docs/DEVELOPMENT_GUIDE.md) → [API 文档](docs/API.md) |
+| **DevOps** | 部署配置 → 监控运维 | [客户端配置](docs/MCP_CLIENT_SETUP.md) → [FAQ](docs/FAQ.md) |
 
-## 其他文档
+## 完整文档
 
-- [CLAUDE.md](CLAUDE.md) - Claude Code 开发指南和项目说明
-- [虚拟环境使用指南](虚拟环境使用指南.md) - 详细的环境配置和使用说明
-- [测试计划](测试计划.md) - 项目测试计划和进度跟踪
+查看 [文档中心](docs/README.md) 获取完整的项目文档。
 
 ## 项目质量保证
 
 ### 代码质量标准
-- ✅ **Ruff** 代码格式检查和静态分析
-- ✅ **MyPy** 严格类型检查（--strict 模式）
-- ✅ **Pylance** IDE 静态分析通过
-- ✅ **73% 测试覆盖率**，企业级标准
+- [OK] **Ruff** 代码格式检查和静态分析
+- [OK] **MyPy** 严格类型检查（--strict 模式）
+- [OK] **Pylance** IDE 静态分析通过
+- [OK] **73% 测试覆盖率**，企业级标准
 
 ### 测试策略
 - **单元测试**: 覆盖所有核心功能模块

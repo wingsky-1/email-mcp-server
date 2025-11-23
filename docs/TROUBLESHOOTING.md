@@ -2,7 +2,7 @@
 
 本指南提供了 Email MCP 服务器常见问题的详细诊断和解决方案。
 
-## 🔍 诊断流程
+## [MAGNIFY] 诊断流程
 
 ### 第一步：检查基本信息
 ```bash
@@ -46,11 +46,11 @@ uv run python -m email_mcp_server
 # Waiting for MCP messages...
 ```
 
-## 🚨 常见错误及解决方案
+## [ALERT] 常见错误及解决方案
 
 ### 错误类型 1：环境配置问题
 
-#### ❌ 错误：`ModuleNotFoundError: No module named 'email_mcp_server'`
+#### [X] 错误：`ModuleNotFoundError: No module named 'email_mcp_server'`
 
 **症状**：
 ```
@@ -79,7 +79,7 @@ ls -la src/email_mcp_server/
 uv run python -c "import email_mcp_server; print('Import successful')"
 ```
 
-#### ❌ 错误：`Email configuration not found` 或环境变量未设置
+#### [X] 错误：`Email configuration not found` 或环境变量未设置
 
 **症状**：
 ```
@@ -118,7 +118,7 @@ print(f'EMAIL_PASSWORD: {\"SET\" if os.getenv(\"EMAIL_PASSWORD\") else \"NOT SET
 "
 ```
 
-#### ❌ 错误：`uv command not found`
+#### [X] 错误：`uv command not found`
 
 **症状**：
 ```
@@ -143,7 +143,7 @@ source ~/.bashrc  # Linux/macOS
 
 ### 错误类型 2：邮箱认证问题
 
-#### ❌ 错误：SMTP 认证失败
+#### [X] 错误：SMTP 认证失败
 
 **症状**：
 ```
@@ -185,7 +185,7 @@ SMTP_USE_TLS=true
    - 访问 Google 账户设置
    - 安全性 → 不太安全的应用访问权限 → 开启
 
-#### ❌ 错误：连接超时
+#### [X] 错误：连接超时
 
 **症状**：
 ```
@@ -214,7 +214,7 @@ DOWNLOAD_TIMEOUT=60
 
 ### 错误类型 3：MCP 通信问题
 
-#### ❌ 错误：MCP 客户端无法连接
+#### [X] 错误：MCP 客户端无法连接
 
 **症状**：
 - Claude Code 中看不到邮件工具
@@ -273,7 +273,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":
 }
 ```
 
-#### ❌ 错误：工具调用失败
+#### [X] 错误：工具调用失败
 
 **症状**：
 ```
@@ -296,7 +296,7 @@ echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | uv run python -m email_m
 
 ### 错误类型 4：附件处理问题
 
-#### ❌ 错误：文件未找到
+#### [X] 错误：文件未找到
 
 **症状**：
 ```
@@ -321,7 +321,7 @@ C:\\Users\\User\\Documents\\report.pdf
 ./attachments/report.pdf
 ```
 
-#### ❌ 错误：附件过大
+#### [X] 错误：附件过大
 
 **症状**：
 ```
@@ -345,7 +345,7 @@ MAX_ATTACHMENT_SIZE=52428800  # 50MB
 
 ### 错误类型 5：内存和性能问题
 
-#### ❌ 错误：内存不足
+#### [X] 错误：内存不足
 
 **症状**：
 - 系统变慢
@@ -373,7 +373,7 @@ sudo mkswap /swapfile
 sudo swapon /swapfile
 ```
 
-## 🔧 调试工具和技巧
+## [TOOLS] 调试工具和技巧
 
 ### 启用详细日志
 ```bash
@@ -442,7 +442,7 @@ traceroute smtp.gmail.com  # Linux/macOS
 tracert smtp.gmail.com    # Windows
 ```
 
-## 🆘 获取帮助
+##  获取帮助
 
 ### 收集诊断信息
 在寻求帮助时，请提供以下信息：
@@ -492,7 +492,7 @@ nano .env
 # 只设置必需的 EMAIL_ADDRESS 和 EMAIL_PASSWORD
 ```
 
-## 📋 检查清单
+## [SCANNER] 检查清单
 
 ### 安装问题检查清单
 - [ ] Python 3.14+ 已安装

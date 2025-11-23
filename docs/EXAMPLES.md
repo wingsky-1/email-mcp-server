@@ -2,7 +2,7 @@
 
 本文档提供了 Email MCP 服务器的详细使用示例和实用教程。
 
-## 📚 目录
+## [BOOKS] 目录
 
 - [基础示例](#基础示例)
 - [高级功能示例](#高级功能示例)
@@ -11,7 +11,7 @@
 - [错误处理示例](#错误处理示例)
 - [性能优化示例](#性能优化示例)
 
-## 🚀 基础示例
+## [ROCKET] 基础示例
 
 ### 1. 发送简单文本邮件
 
@@ -39,9 +39,9 @@ html_content = """
     <p>尊敬的团队成员：</p>
     <p>本周项目进展如下：</p>
     <ul>
-        <li>✅ 完成了用户认证模块</li>
-        <li>🔄 正在进行数据库优化</li>
-        <li>⏳ 计划下周开始前端界面开发</li>
+        <li>[OK] 完成了用户认证模块</li>
+        <li>[SYNC] 正在进行数据库优化</li>
+        <li>[WAIT] 计划下周开始前端界面开发</li>
     </ul>
     <p style="color: #666;">祝好！</p>
 </body>
@@ -132,7 +132,7 @@ send_email(
 )
 ```
 
-## 🔧 高级功能示例
+## [TOOLS] 高级功能示例
 
 ### 1. require_confirmation 功能
 
@@ -152,7 +152,7 @@ send_email(
     require_confirmation=True
 )
 
-# 跳过确认（适用于��动化场景）
+# 跳过确认（适用于动化场景）
 send_email(
     to=["system@example.com"],
     subject="自动生成的监控报告",
@@ -221,7 +221,7 @@ print(f"支持的提供商: {providers}")
 # }
 ```
 
-## 🌐 实际应用场景
+## 网络 实际应用场景
 
 ### 场景1：项目进度报告
 
@@ -246,7 +246,7 @@ def send_project_progress_report():
     </head>
     <body>
         <div class="header">
-            <h1>🚀 项目进度报告</h1>
+            <h1>[ROCKET] 项目进度报告</h1>
             <p><strong>项目名称:</strong> 智能邮件系统</p>
             <p><strong>报告日期:</strong> 2025年11月23日</p>
             <p><strong>项目经理:</strong> 张三</p>
@@ -255,15 +255,15 @@ def send_project_progress_report():
         <div class="progress">
             <h2>本周进展</h2>
             <div class="task completed">
-                <h3>✅ 用户认证模块</h3>
+                <h3>[OK] 用户认证模块</h3>
                 <p>完成了JWT认证和权限管理系统</p>
             </div>
             <div class="task in-progress">
-                <h3>🔄 数据库优化</h3>
+                <h3>[SYNC] 数据库优化</h3>
                 <p>正在进行查询性能优化，完成度70%</p>
             </div>
             <div class="task pending">
-                <h3>⏳ 前端界面开发</h3>
+                <h3>[WAIT] 前端界面开发</h3>
                 <p>计划下周开始，预计2周完成</p>
             </div>
         </div>
@@ -284,7 +284,7 @@ def send_project_progress_report():
     send_email(
         to=["team@company.com", "manager@company.com"],
         cc=["stakeholders@company.com"],
-        subject="🚀 项目进度报告 - 智能邮件系统 (2025年11月23日)",
+        subject="[ROCKET] 项目进度报告 - 智能邮件系统 (2025年11月23日)",
         body=html_report,
         body_format="html",
         priority=2,
@@ -329,25 +329,25 @@ def send_system_monitoring_report():
 
 报告时间: {system_metrics['timestamp']}
 
-📊 系统状态
-- 服务器状态: {system_metrics['server_status']} ✅
+[CHART] 系统状态
+- 服务器状态: {system_metrics['server_status']} [OK]
 - CPU使用率: {system_metrics['cpu_usage']}
 - 内存使用率: {system_metrics['memory_usage']}
 - 磁盘使用率: {system_metrics['disk_usage']}
 - 网络延迟: {system_metrics['network_latency']}
 
-👥 用户指标
+ 用户指标
 - 在线用户数: {system_metrics['active_users']}
 - 错误率: {system_metrics['error_rate']}
 - 系统可用性: {system_metrics['uptime']}
 
-🔔 告警状态
+[BELL] 告警状态
 - CPU使用率正常 (<80%)
 - 内存使用率正常 (<90%)
 - 磁盘使用率注意 (>70%)
 - 错误率良好 (<0.1%)
 
-📈 趋势分析
+[GRAPH] 趋势分析
 - 过去24小时系统运行稳定
 - 用户活跃度较昨日增长5.2%
 - 无重大故障发生
@@ -356,7 +356,7 @@ def send_system_monitoring_report():
     # 发送自动化邮件
     send_email(
         to=["ops@company.com", "devops@company.com"],
-        subject=f"🔍 系统监控报告 - {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+        subject=f"[MAGNIFY] 系统监控报告 - {datetime.now().strftime('%Y-%m-%d %H:%M')}",
         body=report_content,
         attachments=[
             "/var/log/system.log",
@@ -454,7 +454,7 @@ send_customer_service_reply(
 )
 ```
 
-## 🔌 集成示例
+## [PLUG] 集成示例
 
 ### 1. 与 FastAPI 集成
 
@@ -660,7 +660,7 @@ async function sendWelcomeEmail(userEmail, userName) {
 module.exports = EmailMCPService;
 ```
 
-## 🚨 错误处理示例
+## [ALERT] 错误处理示例
 
 ### 1. 完整的错误处理
 
@@ -793,7 +793,7 @@ except Exception as e:
     print("邮件发送最终失败:", e)
 ```
 
-## ⚡ 性能优化示例
+## [BOLT] 性能优化示例
 
 ### 1. 批量邮件发送
 
@@ -863,14 +863,14 @@ email_list = [
         'email': 'user1@example.com',
         'name': '张三',
         'tier': 'VIP',
-        'amount': '¥1,234',
+        'amount': '1,234',
         'offer': '8折优惠'
     },
     {
         'email': 'user2@example.com',
         'name': '李四',
         'tier': '黄金会员',
-        'amount': '¥567',
+        'amount': '567',
         'offer': '9折优惠'
     }
     # ... 更多收件人
@@ -936,7 +936,7 @@ def send_email_with_optimized_attachments(email_data):
     return send_email(**email_data)
 ```
 
-## 📝 最佳实践
+## [EDIT] 最佳实践
 
 ### 1. 邮件模板管理
 

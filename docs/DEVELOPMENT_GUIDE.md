@@ -2,7 +2,7 @@
 
 本指南面向希望参与 Email MCP 服务器开发的开发者，包含开发环境搭建、代码结构、开发流程和最佳实践。
 
-## 📋 目录
+## [SCANNER] 目录
 
 - [开发环境搭建](#开发环境搭建)
 - [项目结构](#项目结构)
@@ -14,7 +14,7 @@
 - [发布流程](#发布流程)
 - [开发最佳实践](#开发最佳实践)
 
-## 🚀 开发环境搭建
+## [ROCKET] 开发环境搭建
 
 ### 系统要求
 - **Python**: 3.14+
@@ -154,7 +154,7 @@ uv run python -m email_mcp_server
    - Settings → Tools → Python Integrated Tools
    - Default test runner: pytest
 
-## 🏗️ 项目结构
+##  项目结构
 
 ### 目录结构详解
 ```
@@ -315,7 +315,7 @@ def check_email_config() -> Dict[str, Any]:
     # 实现配置检查逻辑
 ```
 
-## 🔧 开发流程
+## [TOOLS] 开发流程
 
 ### Git 工作流
 
@@ -464,7 +464,7 @@ Closes: #issue_number
 - MCP 客户端: ___________
 ```
 
-## 🧪 测试开发
+##  测试开发
 
 ### 测试架构
 ```python
@@ -622,7 +622,7 @@ uv run pytest -m "not slow"
 uv run pytest -n auto
 ```
 
-## 🐛 调试技巧
+##  调试技巧
 
 ### 日志调试
 ```python
@@ -672,7 +672,7 @@ print(f"峰值内存使用: {peak / 1024 / 1024:.1f} MB")
 tracemalloc.stop()
 ```
 
-## ⚡ 性能优化
+## [BOLT] 性能优化
 
 ### 代码优化
 ```python
@@ -718,7 +718,7 @@ def test_email_validation_performance(benchmark):
     assert result["valid"] is True
 ```
 
-## 🚀 发布流程
+## [ROCKET] 发布流程
 
 ### 版本管理
 ```bash
@@ -752,7 +752,7 @@ uv run pytest --cov=email_mcp_server --cov-report=html
 - [ ] Git 标签已创建
 - [ ] 性能测试通过
 
-## 📝 开发最佳实践
+## [EDIT] 开发最佳实践
 
 ### 代码风格
 1. **遵循 PEP 8**: 使用 `ruff format` 自动格式化

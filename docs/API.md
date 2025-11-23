@@ -37,14 +37,14 @@ def send_email(
 
 | 参数 | 类型 | 必需 | 默认值 | 说明 |
 |------|------|------|--------|------|
-| `to` | List[str] | ✅ | - | 收件人邮箱地址列表 |
-| `subject` | str | ✅ | - | 邮件主题 |
-| `body` | str | ✅ | - | 邮件正文内容 |
-| `cc` | List[str] | ❌ | None | 抄送邮箱地址列表 |
-| `bcc` | List[str] | ❌ | None | 密送邮箱地址列表 |
-| `attachments` | List[str] | ❌ | None | 附件路径列表（支持本地文件和远程URL） |
-| `body_format` | str | ❌ | "plain" | 邮件格式：`"plain"`（纯文本）或 `"html"`（HTML） |
-| `priority` | int | ❌ | 3 | 邮件优先级：1（最高）- 5（最低） |
+| `to` | List[str] | [OK] | - | 收件人邮箱地址列表 |
+| `subject` | str | [OK] | - | 邮件主题 |
+| `body` | str | [OK] | - | 邮件正文内容 |
+| `cc` | List[str] | [X] | None | 抄送邮箱地址列表 |
+| `bcc` | List[str] | [X] | None | 密送邮箱地址列表 |
+| `attachments` | List[str] | [X] | None | 附件路径列表（支持本地文件和远程URL） |
+| `body_format` | str | [X] | "plain" | 邮件格式：`"plain"`（纯文本）或 `"html"`（HTML） |
+| `priority` | int | [X] | 3 | 邮件优先级：1（最高）- 5（最低） |
 
 **返回值:**
 
@@ -86,7 +86,7 @@ def validate_email(email: str) -> Dict[str, Any]
 
 | 参数 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| `email` | str | ✅ | 要验证的邮箱地址 |
+| `email` | str | [OK] | 要验证的邮箱地址 |
 
 **返回值:**
 
@@ -316,19 +316,19 @@ class AttachmentError(EmailMCPServerError):
 
 | 变量名 | 必需 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `EMAIL_ADDRESS` | ✅ | - | 邮箱地址 |
-| `EMAIL_PASSWORD` | ✅ | - | 邮箱密码或授权码 |
-| `SMTP_SERVER` | ❌ | 自动检测 | SMTP服务器地址 |
-| `SMTP_PORT` | ❌ | 自动检测 | SMTP端口 |
-| `SMTP_USE_TLS` | ❌ | True | 是否使用TLS |
-| `SMTP_USE_SSL` | ❌ | False | 是否使用SSL |
-| `LOG_LEVEL` | ❌ | INFO | 日志级别 |
-| `LOG_FILE` | ❌ | email_mcp.log | 日志文件 |
-| `MAX_ATTACHMENT_SIZE` | ❌ | 26214400 | 最大附件大小（字节） |
-| `TEMP_DIR` | ❌ | temp | 临时目录 |
-| `DOWNLOAD_TIMEOUT` | ❌ | 30 | 下载超时时间（秒） |
-| `MAX_RETRIES` | ❌ | 3 | 最大重试次数 |
-| `REQUIRE_CONFIRMATION` | ❌ | False | 是否需要确认 |
+| `EMAIL_ADDRESS` | [OK] | - | 邮箱地址 |
+| `EMAIL_PASSWORD` | [OK] | - | 邮箱密码或授权码 |
+| `SMTP_SERVER` | [X] | 自动检测 | SMTP服务器地址 |
+| `SMTP_PORT` | [X] | 自动检测 | SMTP端口 |
+| `SMTP_USE_TLS` | [X] | True | 是否使用TLS |
+| `SMTP_USE_SSL` | [X] | False | 是否使用SSL |
+| `LOG_LEVEL` | [X] | INFO | 日志级别 |
+| `LOG_FILE` | [X] | email_mcp.log | 日志文件 |
+| `MAX_ATTACHMENT_SIZE` | [X] | 26214400 | 最大附件大小（字节） |
+| `TEMP_DIR` | [X] | temp | 临时目录 |
+| `DOWNLOAD_TIMEOUT` | [X] | 30 | 下载超时时间（秒） |
+| `MAX_RETRIES` | [X] | 3 | 最大重试次数 |
+| `REQUIRE_CONFIRMATION` | [X] | False | 是否需要确认 |
 
 ### 自动检测的邮箱提供商
 

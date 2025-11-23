@@ -2,7 +2,7 @@
 
 本指南详细说明了 Email MCP 服务器的所有配置选项和最佳实践。
 
-## 📋 目录
+## [SCANNER] 目录
 
 - [快速配置](#快速配置)
 - [环境变量详解](#环境变量详解)
@@ -15,7 +15,7 @@
 - [配置验证](#配置验证)
 - [故障排除](#故障排除)
 
-## 🚀 快速配置
+## [ROCKET] 快速配置
 
 ### 最小配置
 创建 `.env` 文件并设置基本配置：
@@ -56,7 +56,7 @@ APP_NAME=Email MCP Server
 APP_VERSION=1.0.0
 ```
 
-## 📧 邮箱提供商配置
+## 邮件 邮箱提供商配置
 
 ### Gmail 配置
 
@@ -159,9 +159,9 @@ SMTP_USE_TLS=true
 SMTP_USE_SSL=false
 ```
 
-## 🔧 SMTP 服务器配置
+## [TOOLS] SMTP 服务器配置
 
-### 自动检���机制
+### 自动检新增机制
 Email MCP 服务器支持自动检测常见的邮箱提供商：
 
 ```python
@@ -221,7 +221,7 @@ openssl s_client -connect smtp.gmail.com:465
 telnet smtp.gmail.com 587
 ```
 
-## ⚡ 性能配置
+## [BOLT] 性能配置
 
 ### 附件大小限制
 ```env
@@ -260,7 +260,7 @@ AUTO_CLEANUP_TEMP=true         # 自动清理临时文件
 CLEANUP_INTERVAL=3600          # 清理间隔（秒）
 ```
 
-## 🔒 安全配置
+## [LOCK] 安全配置
 
 ### 确认机制
 ```env
@@ -305,7 +305,7 @@ ALLOWED_IPS=192.168.1.0/24,10.0.0.0/8
 RATE_LIMIT_PER_MINUTE=60       # 每分钟最多60封邮件
 ```
 
-## 📝 日志配置
+## [EDIT] 日志配置
 
 ### 日志级别详解
 ```env
@@ -347,7 +347,7 @@ LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
 LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s
 ```
 
-## 🔍 高级配置
+## [MAGNIFY] 高级配置
 
 ### 应用配置
 ```env
@@ -387,7 +387,7 @@ ENABLE_PERFORMANCE_MONITORING=true
 METRICS_EXPORT_INTERVAL=300    # 每5分钟导出指标
 ```
 
-## ✅ 配置验证
+## [OK] 配置验证
 
 ### 验证命令
 ```bash
@@ -443,7 +443,7 @@ export LOG_LEVEL=WARNING
 export REQUIRE_CONFIRMATION=false
 ```
 
-## 🔧 配置管理最佳实践
+## [TOOLS] 配置管理最佳实践
 
 ### 1. 环境分离
 ```bash
@@ -482,18 +482,18 @@ echo "=== Email MCP 服务器配置检查 ==="
 required_vars=("EMAIL_ADDRESS" "EMAIL_PASSWORD")
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
-        echo "❌ 错误: $var 未设置"
+        echo "[X] 错误: $var 未设置"
         exit 1
     else
-        echo "✅ $var 已设置"
+        echo "[OK] $var 已设置"
     fi
 done
 
 # 检查邮箱格式
 if [[ $EMAIL_ADDRESS =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
-    echo "✅ 邮箱地址格式正确"
+    echo "[OK] 邮箱地址格式正确"
 else
-    echo "❌ 错误: 邮箱地址格式无效"
+    echo "[X] 错误: 邮箱地址格式无效"
     exit 1
 fi
 
@@ -504,10 +504,10 @@ SERVER_PID=$!
 sleep 2
 
 if kill -0 $SERVER_PID 2>/dev/null; then
-    echo "✅ 服务器启动成功"
+    echo "[OK] 服务器启动成功"
     kill $SERVER_PID
 else
-    echo "❌ 错误: 服务器启动失败"
+    echo "[X] 错误: 服务器启动失败"
     exit 1
 fi
 
@@ -539,7 +539,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 CMD ["uv", "run", "python", "-m", "email_mcp_server"]
 ```
 
-## 🚨 故障排除
+## [ALERT] 故障排除
 
 ### 常见配置问题
 
