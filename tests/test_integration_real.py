@@ -3,6 +3,7 @@
 import os
 import pytest
 from unittest.mock import patch
+from dotenv import load_dotenv
 
 from email_mcp_server.email_service import EmailService
 from email_mcp_server.models import EmailMessage, Attachment, AttachmentType
@@ -15,6 +16,9 @@ class TestRealEmailService:
     @pytest.fixture(autouse=True)
     def setup(self):
         """检查是否有真实配置"""
+        # 强制加载.env文件，覆盖系统环境变量
+        load_dotenv(".env", override=True)
+
         if not os.getenv("EMAIL_ADDRESS") or not os.getenv("EMAIL_PASSWORD"):
             pytest.skip("需要设置 EMAIL_ADDRESS 和 EMAIL_PASSWORD 环境变量")
 
