@@ -4,10 +4,14 @@ import asyncio
 from collections.abc import Generator
 from pathlib import Path
 from unittest.mock import Mock, patch
+from typing import TYPE_CHECKING
 
 import pytest
 
 from email_mcp_server.config import reload_settings
+
+if TYPE_CHECKING:
+    from email_mcp_server.email_service import EmailService
 
 
 @pytest.fixture(scope="session")
@@ -20,28 +24,73 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop]:
 
 @pytest.fixture
 def mock_email_settings() -> Generator[Mock]:
-    """模拟邮箱配置"""
+    """模拟邮箱配置，使用.env.test中的真实配置"""
+    import os
+    from pathlib import Path
+
+    # 加载.env.test文件
+    env_test_path = Path(__file__).parent.parent / ".env.test"
+    if env_test_path.exists():
+        from dotenv import load_dotenv
+        load_dotenv(env_test_path)
+
     with patch('email_mcp_server.config.get_email_settings') as mock:
-        # 创建 EmailSettings 的 Mock 对象
-        settings = Mock()
-        settings.address = "test@example.com"
-        settings.password = "test_password"
+        # 使用真实配置创建 Mock 对象
+        from email_mcp_server.config import EmailSettings
+        try:
+            # 尝试获取真实配置
+            real_settings = EmailSettings()
 
-        # Mock provider 属性
-        provider_mock = Mock()
-        provider_mock.value = "gmail"
-        settings.provider = provider_mock
+            # 创建基于真实配置的 Mock 对象，但仍然使用 Mock 接口
+            settings = Mock()
+            settings.address = real_settings.address
+            settings.password = real_settings.password
 
-        # Mock SMTP 配置
-        smtp_config_mock = Mock()
-        smtp_config_mock.server = "smtp.gmail.com"
-        smtp_config_mock.port = 587
-        smtp_config_mock.use_tls = True
-        smtp_config_mock.use_ssl = False
-        settings.smtp_config = smtp_config_mock
+            # Mock provider 属性
+            provider_mock = Mock()
+            provider_mock.value = real_settings.provider.value
+            settings.provider = provider_mock
+
+            # Mock SMTP 配置，使用真实配置的值
+            smtp_config_mock = Mock()
+            real_smtp = real_settings.smtp_config
+            smtp_config_mock.server = real_smtp.server
+            smtp_config_mock.port = real_smtp.port
+            smtp_config_mock.use_tls = real_smtp.use_tls
+            smtp_config_mock.use_ssl = real_smtp.use_ssl
+            settings.smtp_config = smtp_config_mock
+
+        except Exception:
+            # 如果获取真实配置失败，回退到默认 Mock 配置
+            settings = Mock()
+            settings.address = os.getenv("EMAIL_ADDRESS", "test@example.com")
+            settings.password = os.getenv("EMAIL_PASSWORD", "test_password")
+
+            # Mock provider 属性
+            provider_mock = Mock()
+            provider_mock.value = "gmail"
+            settings.provider = provider_mock
+
+            # Mock SMTP 配置
+            smtp_config_mock = Mock()
+            smtp_config_mock.server = "smtp.gmail.com"
+            smtp_config_mock.port = 587
+            smtp_config_mock.use_tls = True
+            smtp_config_mock.use_ssl = False
+            settings.smtp_config = smtp_config_mock
 
         mock.return_value = settings
         yield mock
+
+
+@pytest.fixture
+def email_service_with_real_config(mock_email_settings) -> Generator[EmailService]:
+    """使用真实配置的EmailService实例"""
+    from email_mcp_server.email_service import EmailService
+
+    # 在fixture激活状态下创建EmailService实例
+    service = EmailService()
+    yield service
 
 
 @pytest.fixture
