@@ -214,6 +214,10 @@ class SendEmailToolRequest(BaseModel):
     attachments: list[str] | None = Field(None, description="附件路径列表")
     reply_to: str | None = Field(None, description="回复邮箱地址")
     priority: int = Field(default=3, description="邮件优先级", ge=1, le=5)
+    require_confirmation: bool | None = Field(
+        default=None,
+        description="是否需要用户确认发送。None表示使用全局设置，True表示强制要求确认，False表示跳过确认"
+    )
 
     @field_validator("to", "cc", "bcc")
     @classmethod

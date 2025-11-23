@@ -43,6 +43,7 @@ def register_email_tools(mcp: FastMCP) -> None:
         attachments: list[str] | None = None,
         reply_to: str | None = None,
         priority: int = 3,
+        require_confirmation: bool | None = None,
     ) -> dict[str, Any]:
         """
         发送邮件工具
@@ -58,6 +59,7 @@ def register_email_tools(mcp: FastMCP) -> None:
             attachments: 附件路径列表，支持本地文件路径或远程URL
             reply_to: 回复邮箱地址
             priority: 邮件优先级，范围1-5，1为最高优先级，5为最低优先级
+            require_confirmation: 是否需要用户确认发送。None表示使用全局设置，True表示强制要求确认，False表示跳过确认
 
         Returns:
             包含发送结果和详细信息的字典
@@ -74,6 +76,7 @@ def register_email_tools(mcp: FastMCP) -> None:
                 attachments=attachments,
                 reply_to=reply_to,
                 priority=priority,
+                require_confirmation=require_confirmation,
             )
 
             # 验证正文内容
@@ -89,7 +92,8 @@ def register_email_tools(mcp: FastMCP) -> None:
 
             # 检查是否需要用户确认
             app_settings = get_app_settings()
-            if app_settings.require_confirmation:
+            # 确认逻辑：参数级设置优先于全局设置
+            if _should_require_confirmation(request.require_confirmation, app_settings.require_confirmation):
                 # 构建确认消息
                 confirmation_msg = _build_confirmation_message(request)
 
@@ -302,6 +306,22 @@ def register_email_tools(mcp: FastMCP) -> None:
         return response_dict
 
     logger.info("Email tools registered successfully")
+
+
+def _should_require_confirmation(
+    request_param: bool | None, global_setting: bool
+) -> bool:
+    """
+    确定是否需要用户确认
+
+    Args:
+        request_param: 请求参数中的确认设置
+        global_setting: 全局确认设置
+
+    Returns:
+        是否需要确认
+    """
+    return request_param if request_param is not None else global_setting
 
 
 def _build_confirmation_message(request: SendEmailToolRequest) -> str:
