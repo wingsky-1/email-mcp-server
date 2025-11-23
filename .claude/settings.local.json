@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(uv pip install:*)",
+      "Bash(ruff check:*)",
+      "Bash(source:*)",
+      "Bash(ruff format:*)"
     ],
     "deny": [],
     "ask": []
