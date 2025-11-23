@@ -2,8 +2,10 @@
 
 from typing import Any
 
+from fastmcp import Context
 from mcp.server.fastmcp import FastMCP
 
+from .config import get_app_settings
 from .email_service import (
     EmailService,
     validate_email_address,
@@ -31,6 +33,7 @@ def register_email_tools(mcp: FastMCP) -> None:
         description="发送邮件给指定的收件人，支持HTML内容、附件和多种邮件选项",
     )
     async def send_email(
+        ctx: Context,
         to: list[str],
         subject: str,
         body: str | None = None,
@@ -45,6 +48,7 @@ def register_email_tools(mcp: FastMCP) -> None:
         发送邮件工具
 
         Args:
+            ctx: FastMCP 上下文对象，用于用户交互
             to: 收件人邮箱列表，必须提供至少一个有效的邮箱地址
             subject: 邮件主题，不能为空
             body: 邮件正文（纯文本格式）
@@ -82,6 +86,27 @@ def register_email_tools(mcp: FastMCP) -> None:
 
             # 转换为 EmailMessage 对象
             message = request.to_email_message()
+
+            # 检查是否需要用户确认
+            app_settings = get_app_settings()
+            if app_settings.require_confirmation:
+                # 构建确认消息
+                confirmation_msg = _build_confirmation_message(request)
+
+                # 请求用户确认
+                confirmation_result = await ctx.elicit(
+                    confirmation_msg,
+                    response_type=None  # 不需要特定响应类型，只需要确认/拒绝
+                )
+
+                # 检查用户响应
+                if confirmation_result.action != "accept":
+                    return {
+                        "success": False,
+                        "error": "Email sending cancelled by user",
+                        "error_code": "USER_CANCELLED",
+                        "status": "cancelled",
+                    }
 
             # 发送邮件
             email_service = EmailService()
@@ -277,3 +302,57 @@ def register_email_tools(mcp: FastMCP) -> None:
         return response_dict
 
     logger.info("Email tools registered successfully")
+
+
+def _build_confirmation_message(request: SendEmailToolRequest) -> str:
+    """
+    构建邮件发送确认消息
+
+    Args:
+        request: 邮件发送请求对象
+
+    Returns:
+        格式化的确认消息字符串
+    """
+    lines = [
+        "📧 准备发送邮件",
+        "=" * 40,
+        f"📋 主题: {request.subject}",
+        f"👥 收件人: {', '.join(request.to)}",
+    ]
+
+    if request.cc:
+        lines.append(f"📄 抄送: {', '.join(request.cc)}")
+
+    if request.bcc:
+        lines.append(f"🔒 密送: {', '.join(request.bcc)}")
+
+    if request.reply_to:
+        lines.append(f"↩️ 回复至: {request.reply_to}")
+
+    # 优先级
+    priority_names = {1: "最高", 2: "高", 3: "普通", 4: "低", 5: "最低"}
+    priority_name = priority_names.get(request.priority, "普通")
+    lines.append(f"⚡ 优先级: {priority_name}")
+
+    # 邮件内容预览
+    content_preview = request.body or request.html_body or ""
+    if content_preview:
+        # 限制预览长度
+        preview = content_preview[:100] + "..." if len(content_preview) > 100 else content_preview
+        lines.append(f"📝 内容预览: {preview}")
+
+    # 附件信息
+    if request.attachments:
+        lines.append(f"📎 附件数量: {len(request.attachments)}")
+        for i, attachment in enumerate(request.attachments[:3], 1):  # 最多显示3个附件
+            lines.append(f"   {i}. {attachment}")
+        if len(request.attachments) > 3:
+            lines.append(f"   ... 还有 {len(request.attachments) - 3} 个附件")
+
+    lines.extend([
+        "=" * 40,
+        "⚠️  请确认是否发送此邮件？",
+    ])
+
+    return "\n".join(lines)
