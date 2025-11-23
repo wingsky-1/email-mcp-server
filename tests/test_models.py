@@ -536,3 +536,215 @@ class TestSupportedProvidersResponse:
         assert len(response.supported_providers) == 2
         assert response.supported_providers[0].name == "Gmail"
         assert response.supported_providers[1].name == "QQ Mail"
+
+
+class TestModelsEdgeCases:
+    """测试模型边界条件和异常场景"""
+
+    @pytest.mark.unit
+    def test_email_message_extreme_recipients(self):
+        """测试极多数量的收件人"""
+        # 测试大量收件人
+        many_recipients = [f"user{i}@example.com" for i in range(100)]
+        message = EmailMessage(
+            to=many_recipients,
+            subject="Test with many recipients",
+            body="Test body"
+        )
+        assert len(message.to) == 100
+        assert all("@example.com" in email for email in message.to)
+
+    @pytest.mark.unit
+    def test_email_message_very_long_fields(self):
+        """测试非常长的字段"""
+        very_long_subject = "A" * 1000  # 1000字符的主题
+        very_long_body = "B" * 100000  # 100KB的正文
+
+        message = EmailMessage(
+            to=["test@example.com"],
+            subject=very_long_subject,
+            body=very_long_body
+        )
+
+        assert len(message.subject) == 1000
+        assert len(message.body) == 100000
+
+    @pytest.mark.unit
+    def test_email_message_unicode_content(self):
+        """测试Unicode内容"""
+        unicode_subject = "测试主题 📧 with émojis"
+        unicode_body = "测试内容 with various characters: 中文, русский, العربية, हिन्दी"
+
+        message = EmailMessage(
+            to=["test@example.com"],
+            subject=unicode_subject,
+            body=unicode_body,
+            html_body=f"<p>{unicode_body}</p>"
+        )
+
+        assert message.subject == unicode_subject
+        assert message.body == unicode_body
+        assert message.html_body == f"<p>{unicode_body}</p>"
+
+    @pytest.mark.unit
+    def test_attachment_edge_cases(self):
+        """测试附件边界情况"""
+        # 测试非常长的文件路径
+        long_path = "/very/long/path/that/exceeds/normal/filesystem/limits/" + "a" * 200 + ".txt"
+        attachment = Attachment(path=long_path, type=AttachmentType.LOCAL)
+
+        assert attachment.path == long_path
+        assert attachment.type == AttachmentType.LOCAL
+
+        # 测试特殊字符的文件名
+        special_chars_url = "https://example.com/file with spaces & symbols.pdf"
+        attachment = Attachment(path=special_chars_url, type=AttachmentType.REMOTE)
+
+        assert attachment.path == special_chars_url
+        assert attachment.type == AttachmentType.REMOTE
+
+    @pytest.mark.unit
+    def test_smtp_config_invalid_combinations(self):
+        """测试SMTP配置的无效组合"""
+        # TLS和SSL不应该同时为True（虽然在某些情况下可能技术上行得通）
+        config = SMTPConfig(
+            server="smtp.example.com",
+            port=587,
+            use_tls=True,
+            use_ssl=True  # 这种组合虽然可能，但通常不建议
+        )
+
+        assert config.use_tls is True
+        assert config.use_ssl is True
+
+    @pytest.mark.unit
+    def test_send_email_tool_request_all_fields(self):
+        """测试包含所有字段的邮件发送请求"""
+        many_recipients = [f"user{i}@example.com" for i in range(10)]
+        many_cc = [f"cc{i}@example.com" for i in range(5)]
+        many_bcc = [f"bcc{i}@example.com" for i in range(3)]
+        many_attachments = [
+            f"https://example.com/file{i}.pdf" for i in range(20)
+        ]
+
+        request = SendEmailToolRequest(
+            to=many_recipients,
+            subject="Complex email with all fields",
+            body="Email body",
+            html_body="<h1>HTML Body</h1>",
+            cc=many_cc,
+            bcc=many_bcc,
+            reply_to="reply@example.com",
+            priority=1,
+            attachments=many_attachments
+        )
+
+        assert len(request.to) == 10
+        assert len(request.cc) == 5
+        assert len(request.bcc) == 3
+        assert len(request.attachments) == 20
+        assert request.priority == 1
+
+    @pytest.mark.unit
+    def test_email_message_special_characters_in_emails(self):
+        """测试邮箱地址中的特殊字符"""
+        # 测试各种合法的特殊字符
+        valid_emails = [
+            "user+tag@example.com",
+            "user.name@example.com",
+            "user_name@example.com",
+            "user-name@example.com",
+            "user123@example.com",
+            "test.email+tag@example.co.uk"
+        ]
+
+        message = EmailMessage(to=valid_emails, subject="Test", body="Body")
+        assert message.to == valid_emails
+
+    @pytest.mark.unit
+    def test_attachment_size_calculation_edge_cases(self):
+        """测试附件大小计算的边界情况"""
+        # 测试零字节附件
+        zero_size_attachment = Attachment.from_path("/path/to/zero.txt")
+        zero_size_attachment.size = 0
+
+        message = EmailMessage(
+            to=["test@example.com"],
+            subject="Test",
+            body="Body",
+            attachments=[zero_size_attachment]
+        )
+
+        assert message.get_total_attachments_size() == 0
+
+        # 测试大小为None的附件
+        unknown_size_attachment = Attachment.from_path("/path/to/unknown.txt")
+        unknown_size_attachment.size = None
+
+        message = EmailMessage(
+            to=["test@example.com"],
+            subject="Test",
+            body="Body",
+            attachments=[unknown_size_attachment]
+        )
+
+        assert message.get_total_attachments_size() == 0
+
+    @pytest.mark.unit
+    def test_model_field_type_validation(self):
+        """测试模型字段类型验证"""
+        # 测试错误的类型应该被Pydantic拒绝
+        with pytest.raises(ValidationError):
+            SendEmailToolRequest(
+                to=123,  # 应该是列表
+                subject="Test",
+                body="Body"
+            )
+
+        with pytest.raises(ValidationError):
+            EmailMessage(
+                to="not_a_list@example.com",  # 应该是列表
+                subject="Test",
+                body="Body"
+            )
+
+    @pytest.mark.unit
+    def test_connection_info_all_fields(self):
+        """测试连接信息所有字段"""
+        info = ConnectionInfo(
+            provider="custom",
+            smtp_server="smtp.custom.com",
+            smtp_port=465,
+            use_tls=False,
+            use_ssl=True,
+            connected=True
+        )
+
+        assert info.provider == "custom"
+        assert info.smtp_server == "smtp.custom.com"
+        assert info.smtp_port == 465
+        assert info.use_tls is False
+        assert info.use_ssl is True
+        assert info.connected is True
+
+    @pytest.mark.unit
+    def test_provider_info_all_fields(self):
+        """测试提供商信息所有字段"""
+        # 所有字段都是必需的
+        provider = ProviderInfo(
+            name="Test Provider",
+            domain="test.com",
+            smtp_server="smtp.test.com",
+            smtp_port=587,
+            security="TLS",
+            auth_required="Password",
+            setup_notes="Setup instructions"
+        )
+
+        assert provider.name == "Test Provider"
+        assert provider.domain == "test.com"
+        assert provider.smtp_server == "smtp.test.com"
+        assert provider.smtp_port == 587
+        assert provider.security == "TLS"
+        assert provider.auth_required == "Password"
+        assert provider.setup_notes == "Setup instructions"

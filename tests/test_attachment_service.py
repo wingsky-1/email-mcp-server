@@ -253,9 +253,36 @@ class TestAttachmentService:
         file_data = b"Test content"
         file_hash = attachment_service.get_file_hash(file_data)
 
-        # 验证哈希值长度（SHA256）
+        # 验证哈希值长度（SHA256应该是64位十六进制字符）
         assert len(file_hash) == 64
         assert file_hash is not None
+        # 验证哈希值是有效的十六进制字符串
+        assert all(c in "0123456789abcdef" for c in file_hash)
+        # 验证相同内容产生相同哈希
+        file_hash2 = attachment_service.get_file_hash(file_data)
+        assert file_hash == file_hash2
+        # 验证不同内容产生不同哈希
+        different_hash = attachment_service.get_file_hash(b"Different content")
+        assert file_hash != different_hash
+
+    @pytest.mark.unit
+    def test_get_file_hash_empty_data(self, attachment_service):
+        """测试空数据的文件哈希"""
+        empty_hash = attachment_service.get_file_hash(b"")
+
+        # 空数据的SHA256哈希是固定的
+        expected_empty_hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        assert empty_hash == expected_empty_hash
+
+    @pytest.mark.unit
+    def test_get_file_hash_large_data(self, attachment_service):
+        """测试大数据的文件哈希"""
+        # 创建1MB的测试数据
+        large_data = b"A" * (1024 * 1024)
+        large_hash = attachment_service.get_file_hash(large_data)
+
+        assert len(large_hash) == 64
+        assert large_hash is not None
 
     @pytest.mark.unit
     def test_validate_attachment_local_valid(self, attachment_service, local_attachment, tmp_path):
@@ -271,34 +298,47 @@ class TestAttachmentService:
             attachment_service.validate_attachment(local_attachment)
 
     @pytest.mark.unit
-    def test_validate_attachment_local_not_exists(self, attachment_service, local_attachment):
-        """测试验证本地不存在的附件（只验证路径格式，不检查文件是否存在）"""
-        # validate_attachment 只验证路径格式，不检查文件是否存在
-        # 这个测���确保相对路径会被拒绝
+    def test_validate_attachment_local_not_absolute(self, attachment_service):
+        """测试验证本地附件路径格式 - 必须使用绝对路径"""
+        # 测试相对路径（应该失败）
         relative_attachment = Attachment(path="relative/path/file.txt", type=AttachmentType.LOCAL)
 
         with pytest.raises(AttachmentError, match="Local file path must be absolute"):
             attachment_service.validate_attachment(relative_attachment)
 
-        # 绝对路径应该通过验证（即使文件不存在）
-        # 使用Windows绝对路径
-        absolute_attachment = Attachment(path="C:\\path\\to\\file.txt", type=AttachmentType.LOCAL)
-        attachment_service.validate_attachment(absolute_attachment)  # 应该不抛出异常
+        # 测试各种绝对路径格式（应该通过）
+        absolute_paths = [
+            "C:\\path\\to\\file.txt",  # Windows路径
+            "/path/to/file.txt",       # Unix路径
+            "D:\\folder\\document.pdf"  # Windows其他盘符
+        ]
+
+        for path in absolute_paths:
+            absolute_attachment = Attachment(path=path, type=AttachmentType.LOCAL)
+            # 应该不抛出异常
+            attachment_service.validate_attachment(absolute_attachment)
 
     @pytest.mark.unit
-    def test_validate_attachment_remote_valid(self, attachment_service, remote_attachment):
+    def test_validate_attachment_local_empty_path(self, attachment_service):
+        """测试验证空路径的本地附件"""
+        empty_attachment = Attachment(path="", type=AttachmentType.LOCAL)
+
+        with pytest.raises(AttachmentError, match="Local file path must be absolute"):
+            attachment_service.validate_attachment(empty_attachment)
+
+    @pytest.mark.unit
+    def test_validate_attachment_remote_valid(self, attachment_service):
         """测试验证远程有效附件"""
-        from urllib.parse import urlparse
+        valid_urls = [
+            "https://example.com/file.pdf",
+            "http://test.org/document.txt",
+            "https://api.service.com/download/image.jpg"
+        ]
 
-        with patch('email_mcp_server.attachment_service.urlparse') as mock_urlparse:
-            # 创建一个新的Mock对象来设置scheme
-            mock_result = Mock()
-            mock_result.scheme = "https"
-            mock_result.netloc = "example.com"
-            mock_urlparse.return_value = mock_result
-
+        for url in valid_urls:
+            attachment = Attachment(path=url, type=AttachmentType.REMOTE)
             # 应该不抛出异常
-            attachment_service.validate_attachment(remote_attachment)
+            attachment_service.validate_attachment(attachment)
 
     @pytest.mark.unit
     def test_validate_attachment_remote_invalid_url(self, attachment_service):

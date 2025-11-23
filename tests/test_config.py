@@ -214,3 +214,215 @@ class TestConfigurationValidation:
 
         # 验证常见的 SMTP 端口
         assert smtp_config.port in [25, 465, 587, 2525]
+
+
+class TestConfigurationEdgeCases:
+    """测试配置边界条件和异常场景"""
+
+    def test_email_settings_missing_environment_vars(self):
+        """测试缺少必需环境变量的情况"""
+        import os
+
+        original_email = os.environ.get("EMAIL_ADDRESS")
+        original_password = os.environ.get("EMAIL_PASSWORD")
+
+        try:
+            # 清除环境变量
+            if "EMAIL_ADDRESS" in os.environ:
+                del os.environ["EMAIL_ADDRESS"]
+            if "EMAIL_PASSWORD" in os.environ:
+                del os.environ["EMAIL_PASSWORD"]
+
+            reload_settings()
+
+            with pytest.raises(ValidationError):
+                EmailSettings()
+
+        finally:
+            # 恢复环境变量
+            if original_email is not None:
+                os.environ["EMAIL_ADDRESS"] = original_email
+            elif "EMAIL_ADDRESS" in os.environ:
+                del os.environ["EMAIL_ADDRESS"]
+
+            if original_password is not None:
+                os.environ["EMAIL_PASSWORD"] = original_password
+            elif "EMAIL_PASSWORD" in os.environ:
+                del os.environ["EMAIL_PASSWORD"]
+
+            reload_settings()
+
+    def test_email_settings_whitespace_email(self):
+        """测试包含空格的邮箱地址"""
+        import os
+
+        original_email = os.environ.get("EMAIL_ADDRESS")
+        original_password = os.environ.get("EMAIL_PASSWORD")
+
+        try:
+            os.environ["EMAIL_ADDRESS"] = "  test@example.com  "
+            if "EMAIL_PASSWORD" not in os.environ:
+                os.environ["EMAIL_PASSWORD"] = "test_password"
+
+            reload_settings()
+
+            with pytest.raises(ValidationError):
+                EmailSettings()
+
+        finally:
+            if original_email is not None:
+                os.environ["EMAIL_ADDRESS"] = original_email
+            elif "EMAIL_ADDRESS" in os.environ:
+                del os.environ["EMAIL_ADDRESS"]
+
+            if original_password is not None:
+                os.environ["EMAIL_PASSWORD"] = original_password
+            elif "EMAIL_PASSWORD" in os.environ:
+                del os.environ["EMAIL_PASSWORD"]
+
+            reload_settings()
+
+    def test_email_settings_empty_password(self):
+        """测试空密码"""
+        import os
+
+        original_email = os.environ.get("EMAIL_ADDRESS")
+        original_password = os.environ.get("EMAIL_PASSWORD")
+
+        try:
+            if "EMAIL_ADDRESS" not in os.environ:
+                os.environ["EMAIL_ADDRESS"] = "test@example.com"
+            os.environ["EMAIL_PASSWORD"] = ""
+
+            reload_settings()
+
+            # 空密码应该导致ValidationError
+            with pytest.raises(ValidationError):
+                EmailSettings()
+
+        finally:
+            if original_email is not None:
+                os.environ["EMAIL_ADDRESS"] = original_email
+            elif "EMAIL_ADDRESS" in os.environ:
+                del os.environ["EMAIL_ADDRESS"]
+
+            if original_password is not None:
+                os.environ["EMAIL_PASSWORD"] = original_password
+            elif "EMAIL_PASSWORD" in os.environ:
+                del os.environ["EMAIL_PASSWORD"]
+
+            reload_settings()
+
+    def test_app_settings_invalid_numeric_values(self):
+        """测试无效的数值配置"""
+        from email_mcp_server.config import AppSettings
+        from pydantic import ValidationError
+
+        # 测试无效的负数值
+        with pytest.raises(ValidationError):
+            AppSettings(
+                max_attachment_size=-1,
+                download_timeout=30,
+                max_retries=3
+            )
+
+        # 测试无效的超时时间
+        with pytest.raises(ValidationError):
+            AppSettings(
+                max_attachment_size=25 * 1024 * 1024,
+                download_timeout=0,
+                max_retries=3
+            )
+
+        # 测试无效的重试次数
+        with pytest.raises(ValidationError):
+            AppSettings(
+                max_attachment_size=25 * 1024 * 1024,
+                download_timeout=30,
+                max_retries=-1
+            )
+
+    def test_app_settings_extreme_values(self):
+        """测试极端值配置"""
+        from email_mcp_server.config import AppSettings
+
+        # 测试极小值（边界）
+        settings = AppSettings(
+            max_attachment_size=1,
+            download_timeout=1,
+            max_retries=0,
+            log_level="DEBUG"
+        )
+        assert settings.max_attachment_size == 1
+        assert settings.download_timeout == 1
+        assert settings.max_retries == 0
+        assert settings.log_level == "DEBUG"
+
+    def test_unknown_email_domain_provider(self):
+        """测试未知邮箱域的提供商处理"""
+        import os
+
+        original_email = os.environ.get("EMAIL_ADDRESS")
+        original_password = os.environ.get("EMAIL_PASSWORD")
+
+        try:
+            os.environ["EMAIL_ADDRESS"] = "user@unknown-domain.xyz"
+            if "EMAIL_PASSWORD" not in os.environ:
+                os.environ["EMAIL_PASSWORD"] = "test_password"
+
+            reload_settings()
+
+            # 对于未知域名，应该默认使用GMAIL或抛出异常
+            try:
+                settings = EmailSettings()
+                # 如果没有抛出异常，检查是否使用了默认提供商
+                assert settings.provider in [EmailProvider.GMAIL, EmailProvider.QQ]
+            except ValidationError:
+                # 或者抛出ValidationError也是可以接受的
+                pass
+
+        finally:
+            if original_email is not None:
+                os.environ["EMAIL_ADDRESS"] = original_email
+            elif "EMAIL_ADDRESS" in os.environ:
+                del os.environ["EMAIL_ADDRESS"]
+
+            if original_password is not None:
+                os.environ["EMAIL_PASSWORD"] = original_password
+            elif "EMAIL_PASSWORD" in os.environ:
+                del os.environ["EMAIL_PASSWORD"]
+
+            reload_settings()
+
+    def test_concurrent_settings_access(self):
+        """测试并发访问设置的安全性"""
+        import threading
+        import time
+
+        results = []
+        errors = []
+
+        def worker():
+            try:
+                for _ in range(10):
+                    settings = get_email_settings()
+                    results.append(settings.address)
+                    time.sleep(0.001)  # 短暂休眠
+            except Exception as e:
+                errors.append(e)
+
+        # 创建多个线程
+        threads = [threading.Thread(target=worker) for _ in range(5)]
+
+        # 启动所有线程
+        for thread in threads:
+            thread.start()
+
+        # 等待所有线程完成
+        for thread in threads:
+            thread.join()
+
+        # 验证没有错误发生
+        assert len(errors) == 0, f"Errors occurred: {errors}"
+        # 验证所有结果都一致
+        assert len(set(results)) == 1, f"Inconsistent results: {set(results)}"
