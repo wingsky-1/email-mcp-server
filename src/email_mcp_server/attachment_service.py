@@ -258,9 +258,24 @@ class AttachmentService:
     def validate_attachment(self, attachment: Attachment) -> None:
         """验证附件配置."""
         if attachment.type == AttachmentType.LOCAL:
-            # 验证本地文件路径
-            file_path = Path(attachment.path)
-            if not file_path.is_absolute():
+            # 验证本地文件路径格式和是否为空
+            if not attachment.path or not attachment.path.strip():
+                raise AttachmentError("Local file path cannot be empty")
+
+            # 验证是否为绝对路径（支持Windows和Unix格式）
+            path_str = attachment.path.strip()
+            # Windows路径检查：盘符开头或UNC路径
+            is_windows_absolute = (
+                len(path_str) >= 3 and
+                path_str[1:3] == ":\\"
+            ) or (
+                len(path_str) >= 2 and
+                path_str[:2] == "\\\\"
+            )
+            # Unix路径检查：以/开头
+            is_unix_absolute = path_str.startswith("/")
+
+            if not (is_windows_absolute or is_unix_absolute):
                 raise AttachmentError("Local file path must be absolute")
 
         elif attachment.type == AttachmentType.REMOTE:

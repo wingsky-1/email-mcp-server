@@ -323,7 +323,7 @@ class TestAttachmentService:
         """测试验证空路径的本地附件"""
         empty_attachment = Attachment(path="", type=AttachmentType.LOCAL)
 
-        with pytest.raises(AttachmentError, match="Local file path must be absolute"):
+        with pytest.raises(AttachmentError, match="Local file path cannot be empty"):
             attachment_service.validate_attachment(empty_attachment)
 
     @pytest.mark.unit
