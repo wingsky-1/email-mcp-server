@@ -33,18 +33,12 @@ def mock_email_settings() -> Generator[Mock]:
         settings.provider = provider_mock
 
         # Mock SMTP 配置
-        settings.smtp_server = None
-        settings.smtp_port = None
-        settings.smtp_use_tls = None
-        settings.smtp_use_ssl = None
-
-        # Mock get_smtp_config 方法
         smtp_config_mock = Mock()
         smtp_config_mock.server = "smtp.gmail.com"
         smtp_config_mock.port = 587
         smtp_config_mock.use_tls = True
         smtp_config_mock.use_ssl = False
-        settings.get_smtp_config = Mock(return_value=smtp_config_mock)
+        settings.smtp_config = smtp_config_mock
 
         mock.return_value = settings
         yield mock
