@@ -12,25 +12,31 @@ from .logging_config import setup_logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
-# 创建 MCP 服务器实例
-mcp = FastMCP(
-    name="Email MCP Server",
-    instructions="一个强大的邮件发送MCP服务器，支持QQ邮箱和Gmail，可以发送文本、HTML邮件和附件。",
-    website_url="https://github.com/your-email/email-mcp-server",
-    debug=False,
-    log_level="INFO",
-)
-
-# 立即注册工具到全局mcp实例
-try:
-    register_email_tools(mcp)
-    logger.info("Email tools registered successfully")
-except Exception as e:
-    logger.error(f"Failed to register email tools: {e}")
+# 全局服务器实例（延迟初始化）
+_mcp_instance = None
 
 
-def create_server() -> FastMCP:
+def create_server(name: str = "Email MCP Server") -> FastMCP:
     """创建并配置 MCP 服务器实例."""
+    global _mcp_instance
+
+    if _mcp_instance is None:
+        # 创建 MCP 服务器实例
+        _mcp_instance = FastMCP(
+            name=name,
+            instructions="一个强大的邮件发送MCP服务器，支持QQ邮箱和Gmail，可以发送文本、HTML邮件和附件。",
+            website_url="https://github.com/your-email/email-mcp-server",
+            debug=False,
+            log_level="INFO",
+        )
+
+        # 注册工具
+        try:
+            register_email_tools(_mcp_instance)
+            logger.info("Email tools registered successfully")
+        except Exception as e:
+            logger.error(f"Failed to register email tools: {e}")
+
     try:
         # 测试邮箱配置
         email_settings = get_email_settings()
@@ -42,7 +48,14 @@ def create_server() -> FastMCP:
         )
 
     logger.info("Email MCP Server initialized successfully")
-    return mcp
+    return _mcp_instance
+
+
+def get_server() -> FastMCP:
+    """获取已初始化的服务器实例."""
+    if _mcp_instance is None:
+        return create_server()
+    return _mcp_instance
 
 
 def main() -> None:

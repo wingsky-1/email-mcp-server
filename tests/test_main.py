@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from email_mcp_server.main import main, create_server
+from email_mcp_server.main import main, create_server, get_server
 
 
 class TestMainFunction:
@@ -12,20 +12,87 @@ class TestMainFunction:
     @pytest.mark.unit
     def test_create_server(self):
         """测试创建服务器"""
-        with patch('email_mcp_server.main.FastMCP') as mock_fastmcp:
-            mock_server = Mock()
-            mock_fastmcp.return_value = mock_server
+        # 重置全局实例
+        with patch('email_mcp_server.main._mcp_instance', None):
+            with patch('email_mcp_server.main.FastMCP') as mock_fastmcp:
+                mock_server = Mock()
+                mock_fastmcp.return_value = mock_server
 
-            with patch('email_mcp_server.main.register_email_tools') as mock_register:
-                server = create_server()
+                with patch('email_mcp_server.main.register_email_tools') as mock_register:
+                    server = create_server()
 
-                # 验证 FastMCP 被调用
-                mock_fastmcp.assert_called_once_with("Email MCP Server")
+                    # 验证 FastMCP 被调用
+                    mock_fastmcp.assert_called_once()
 
-                # 验证工具被注册
-                mock_register.assert_called_once_with(mock_server)
+                    # 验证工具被注册
+                    mock_register.assert_called_once_with(mock_server)
 
-                # 验证返回的服务器实例
+                    # 验证返回的服务器实例
+                    assert server is mock_server
+
+    @pytest.mark.unit
+    def test_create_server_with_custom_name(self):
+        """测试使用自定义名称创建服务器"""
+        # 重置全局实例
+        with patch('email_mcp_server.main._mcp_instance', None):
+            with patch('email_mcp_server.main.FastMCP') as mock_fastmcp:
+                mock_server = Mock()
+                mock_fastmcp.return_value = mock_server
+
+                with patch('email_mcp_server.main.register_email_tools'):
+                    create_server("Custom Server Name")
+
+                    # 验证自定义名称被使用
+                    mock_fastmcp.assert_called_once()
+                    call_kwargs = mock_fastmcp.call_args[1]
+                    assert call_kwargs['name'] == "Custom Server Name"
+
+    @pytest.mark.unit
+    def test_create_server_singleton(self):
+        """测试服务器单例模式"""
+        # 重置全局实例
+        with patch('email_mcp_server.main._mcp_instance', None):
+            with patch('email_mcp_server.main.FastMCP') as mock_fastmcp:
+                mock_server = Mock()
+                mock_fastmcp.return_value = mock_server
+
+                with patch('email_mcp_server.main.register_email_tools'):
+                    server1 = create_server()
+                    server2 = create_server()
+
+                    # FastMCP应该只被调用一次（单例模式）
+                    mock_fastmcp.assert_called_once()
+
+                    # 两次调用应该返回同一个实例
+                    assert server1 is server2
+                    assert server1 is mock_server
+
+    @pytest.mark.unit
+    def test_get_server_uninitialized(self):
+        """测试获取未初始化的服务器"""
+        # 重置全局实例
+        with patch('email_mcp_server.main._mcp_instance', None):
+            with patch('email_mcp_server.main.create_server') as mock_create:
+                mock_server = Mock()
+                mock_create.return_value = mock_server
+
+                server = get_server()
+
+                # 应该调用create_server
+                mock_create.assert_called_once()
+                assert server is mock_server
+
+    @pytest.mark.unit
+    def test_get_server_initialized(self):
+        """测试获取已初始化的服务器"""
+        # 模拟已初始化的服务器
+        mock_server = Mock()
+        with patch('email_mcp_server.main._mcp_instance', mock_server):
+            with patch('email_mcp_server.main.create_server') as mock_create:
+                server = get_server()
+
+                # 不应该再次调用create_server
+                mock_create.assert_not_called()
                 assert server is mock_server
 
     @pytest.mark.unit
@@ -42,7 +109,7 @@ class TestMainFunction:
                 mock_server.run.assert_called_once()
 
                 # 验证日志记录
-                mock_logger.info.assert_any_call("Starting Email MCP Server...")
+                mock_logger.info.assert_any_call("Starting Email MCP Server in STDIO mode...")
 
     @pytest.mark.unit
     def test_main_function_keyboard_interrupt(self):
