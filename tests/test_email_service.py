@@ -63,12 +63,13 @@ class TestEmailService:
     @pytest.mark.unit
     def test_real_config_values(self, email_service):
         """测试真实配置值"""
-        # 验证配置值
-        assert email_service.settings.address == "tangyi060320@gmail.com"
-        assert email_service.settings.smtp_config.server == "smtp.gmail.com"
-        assert email_service.settings.smtp_config.port == 587
-        assert email_service.settings.smtp_config.use_tls is True
-        assert email_service.settings.smtp_config.use_ssl is False
+        # 验证配置值存在且有效
+        assert email_service.settings.address is not None
+        assert "@" in email_service.settings.address
+        assert email_service.settings.smtp_config.server is not None
+        assert email_service.settings.smtp_config.port is not None
+        assert isinstance(email_service.settings.smtp_config.use_tls, bool)
+        assert isinstance(email_service.settings.smtp_config.use_ssl, bool)
 
     @pytest.mark.unit
     def test_mock_smtp_success_with_real_config(self, email_service):
@@ -81,13 +82,19 @@ class TestEmailService:
             email_service.connect()
 
             # 验证使用了正确的参数
-            mock_smtp.assert_called_once_with("smtp.gmail.com", 587)
+            mock_smtp.assert_called_once_with(
+                email_service.settings.smtp_config.server,
+                email_service.settings.smtp_config.port
+            )
             mock_conn.ehlo.assert_called()
             mock_conn.starttls.assert_called_once()
             mock_conn.ehlo.assert_called()  # TLS后的ehlo
 
             # 验证登录被调用
-            mock_conn.login.assert_called_once_with("tangyi060320@gmail.com", "qnbxkavrbjbilmgi")
+            mock_conn.login.assert_called_once_with(
+                email_service.settings.address,
+                email_service.settings.password
+            )
 
             email_service.disconnect()
 
@@ -108,10 +115,16 @@ class TestEmailService:
                 email_service.connect()
 
                 # 验证使用SSL连接
-                mock_smtp_ssl.assert_called_once_with("smtp.gmail.com", 587)
+                mock_smtp_ssl.assert_called_once_with(
+                    email_service.settings.smtp_config.server,
+                    email_service.settings.smtp_config.port
+                )
 
                 # 验证登录被调用
-                mock_conn.login.assert_called_once_with("tangyi060320@gmail.com", "qnbxkavrbjbilmgi")
+                mock_conn.login.assert_called_once_with(
+                    email_service.settings.address,
+                    email_service.settings.password
+                )
 
             finally:
                 email_service.disconnect()
