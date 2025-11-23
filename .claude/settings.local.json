@@ -12,7 +12,8 @@
       "Bash(uv run ruff check:*)",
       "Bash(uv run:*)",
       "Bash(uv sync:*)",
-      "Bash(uv add:*)"
+      "Bash(uv add:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []

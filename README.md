@@ -16,9 +16,11 @@
 ### 环境要求
 
 - Python 3.14+
-- uv 包管理器
+- uv 包管理器（推荐）或 pip
 
 ### 安装
+
+#### 方法一：使用 uv（推荐）
 
 1. 克隆项目
 ```bash
@@ -26,10 +28,9 @@ git clone <repository-url>
 cd email-mcp-server
 ```
 
-2. 创建虚拟环境并安装依赖
+2. 安装依赖并创建虚拟环境
 ```bash
-uv venv
-uv pip install -e ".[dev]"
+uv sync
 ```
 
 3. 配置环境变量
@@ -43,9 +44,44 @@ cp .env.example .env
 # 方式一：使用批处理脚本（Windows）
 start_server.bat
 
+# 方式二：使用 uv
+uv run python -m email_mcp_server
+```
+
+#### 方法二：使用传统 pip
+
+1. 克隆项目
+```bash
+git clone <repository-url>
+cd email-mcp-server
+```
+
+2. 创建虚拟环境
+```bash
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# Linux/macOS
+source .venv/bin/activate
+```
+
+3. 安装依赖
+```bash
+pip install -e ".[dev]"
+```
+
+4. 配置环境变量
+```bash
+cp .env.example .env
+# 编辑 .env 文件，填入您的邮箱凭据
+```
+
+5. 运行服务器
+```bash
+# 方式一：使用批处理脚本（Windows）
+start_server.bat
+
 # 方式二：手动运行
-source .venv/Scripts/activate  # Windows
-# 或 source .venv/bin/activate  # Linux/macOS
 python -m email_mcp_server
 ```
 
@@ -101,9 +137,34 @@ send_email(
 
 ### 代码质量检查
 
+#### 使用 uv（推荐）
 ```bash
 # 代码格式检查
+uv run ruff check src/
+
+# 代码格式检查并自动修复
+uv run ruff check --fix src/
+
+# 代码格式化
+uv run ruff format src/
+
+# 类型检查
+uv run mypy src/
+```
+
+#### 使用传统方式
+```bash
+# 先激活虚拟环境
+# Windows
+.venv\Scripts\activate
+# Linux/macOS
+source .venv/bin/activate
+
+# 代码格式检查
 ruff check src/
+
+# 代码格式检查并自动修复
+ruff check --fix src/
 
 # 代码格式化
 ruff format src/
@@ -114,12 +175,30 @@ mypy src/
 
 ### 测试
 
+#### 使用 uv（推荐）
 ```bash
+# 运行所有测试
+uv run pytest
+
+# 运行特定测试
+uv run pytest tests/test_email_service.py
+
+# 运行测试并生成覆盖率报告
+uv run pytest --cov=email_mcp_server tests/
+```
+
+#### 使用传统方式
+```bash
+# 先激活虚拟环境（命令同上）
+
 # 运行所有测试
 pytest
 
 # 运行特定测试
 pytest tests/test_email_service.py
+
+# 运行测试并生成覆盖率报告
+pytest --cov=email_mcp_server tests/
 ```
 
 ## 项目结构
@@ -131,9 +210,17 @@ email-mcp-server/
 ├── docs/                     # 文档
 ├── .env.example              # 环境变量模板
 ├── start_server.bat          # Windows 启动脚本
+├── start_server.sh           # Linux/macOS 启动脚本
 ├── pyproject.toml            # 项目配置
+├── 虚拟环境使用指南.md        # 虚拟环境使用说明
+├── 实施计划.md               # 项目实施计划
 └── README.md                 # 项目说明
 ```
+
+## 其他文档
+
+- [虚拟环境使用指南](虚拟环境使用指南.md) - 详细的环境配置和使用说明
+- [实施计划](实施计划.md) - 项目开发计划和进度跟踪
 
 ## 限制和注意事项
 
