@@ -325,6 +325,7 @@ class TestAttachmentService:
     def test_download_remote_file_retry_success(self, attachment_service):
         """测试远程文件下载重试成功"""
         url = "https://example.com/file.txt"
+        expected_path = "/tmp/temp_download"
 
         with patch('email_mcp_server.attachment_service.requests.Session') as mock_session_class:
             mock_session = Mock()
@@ -336,16 +337,22 @@ class TestAttachmentService:
             mock_response.iter_content.return_value = [b"Remote content"]
             mock_session.get.return_value = mock_response
 
-            with patch('email_mcp_server.attachment_service.tempfile.NamedTemporaryFile') as mock_temp:
-                mock_temp_file = Mock()
-                mock_temp_file.name = "/tmp/temp_download"
-                mock_temp.__enter__.return_value = mock_temp_file
+            # Mock tempfile.NamedTemporaryFile和open函数
+            with patch('email_mcp_server.attachment_service.tempfile.NamedTemporaryFile') as mock_temp, \
+                 patch('builtins.open', mock_file_open=Mock()) as mock_open:
+
+                # 配置tempfile mock
+                mock_temp.return_value.__enter__.return_value.name = expected_path
+                mock_open.return_value.__enter__.return_value = mock_open.return_value
+                mock_open.return_value.write = Mock()
 
                 result = attachment_service._download_remote_file(url)
 
-                # 验证结果是临时文件路径
-                assert result == "/tmp/temp_download"
+                # 验证结果是临时文件路径字符串
+                assert result == expected_path
                 mock_session.get.assert_called_once()
+                mock_temp.assert_called_once()
+                mock_open.assert_called_once_with(expected_path, "wb")
 
     @pytest.mark.unit
     def test_download_remote_file_retry_exhausted(self, attachment_service):
