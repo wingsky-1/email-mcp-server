@@ -35,6 +35,52 @@ def email_service() -> Generator[EmailService, None, None]:
         yield service
 
 
+@pytest.fixture
+def mock_smtp_connection():
+    """创建完整的SMTP连接Mock"""
+    mock_smtp = Mock()
+    mock_conn = Mock()
+
+    # 添加SMTP对象的必要��性
+    mock_conn.local_hostname = "localhost"
+    mock_conn.sock = Mock()
+    mock_conn.sock.file.return_value = Mock()
+
+    # 配置标准SMTP方法返回值
+    mock_conn.ehlo.return_value = (250, b"OK")
+    mock_conn.starttls.return_value = (220, b"Ready to start TLS")
+    mock_conn.login.return_value = (235, b"Authentication successful")
+    mock_conn.sendmail.return_value = {}
+    mock_conn.quit.return_value = (221, b"Bye")
+    mock_conn.close.return_value = None
+
+    mock_smtp.return_value = mock_conn
+
+    return mock_smtp, mock_conn
+
+
+@pytest.fixture
+def mock_smtp_ssl_connection():
+    """创建完整的SSL SMTP连接Mock"""
+    mock_smtp_ssl = Mock()
+    mock_conn = Mock()
+
+    # 添加SMTP_SSL对象的必要属性
+    mock_conn.local_hostname = "localhost"
+    mock_conn.sock = Mock()
+    mock_conn.sock.file.return_value = Mock()
+
+    # 配置SSL SMTP方法返回值
+    mock_conn.login.return_value = (235, b"Authentication successful")
+    mock_conn.sendmail.return_value = {}
+    mock_conn.quit.return_value = (221, b"Bye")
+    mock_conn.close.return_value = None
+
+    mock_smtp_ssl.return_value = mock_conn
+
+    return mock_smtp_ssl, mock_conn
+
+
 class TestEmailServiceBasic:
     """EmailService 基础功能测试"""
 
@@ -47,12 +93,11 @@ class TestEmailServiceBasic:
         assert email_service._connection is None
 
     @pytest.mark.unit
-    def test_connect_success_tls(self, email_service):
+    def test_connect_success_tls(self, email_service, mock_smtp_connection):
         """测试TLS连接成功"""
-        with patch('smtplib.SMTP') as mock_smtp:
-            mock_conn = Mock()
-            mock_smtp.return_value = mock_conn
+        mock_smtp, mock_conn = mock_smtp_connection
 
+        with patch('smtplib.SMTP', return_value=mock_smtp):
             email_service.connect()
 
             # 验证连接参数
@@ -63,15 +108,14 @@ class TestEmailServiceBasic:
             assert email_service._connection is mock_conn
 
     @pytest.mark.unit
-    def test_connect_success_ssl(self, email_service):
+    def test_connect_success_ssl(self, email_service, mock_smtp_ssl_connection):
         """测试SSL连接成功"""
         email_service.settings.smtp_config.use_tls = False
         email_service.settings.smtp_config.use_ssl = True
 
-        with patch('smtplib.SMTP_SSL') as mock_smtp_ssl:
-            mock_conn = Mock()
-            mock_smtp_ssl.return_value = mock_conn
+        mock_smtp_ssl, mock_conn = mock_smtp_ssl_connection
 
+        with patch('smtplib.SMTP_SSL', return_value=mock_smtp_ssl):
             email_service.connect()
 
             mock_smtp_ssl.assert_called_once_with("smtp.gmail.com", 587)
@@ -95,12 +139,11 @@ class TestEmailServiceBasic:
             assert mock_smtp.call_count == 1
 
     @pytest.mark.unit
-    def test_disconnect_success(self, email_service):
+    def test_disconnect_success(self, email_service, mock_smtp_connection):
         """测试断开连接成功"""
-        with patch('smtplib.SMTP') as mock_smtp:
-            mock_conn = Mock()
-            mock_smtp.return_value = mock_conn
+        mock_smtp, mock_conn = mock_smtp_connection
 
+        with patch('smtplib.SMTP', return_value=mock_smtp):
             email_service.connect()
             email_service.disconnect()
 
@@ -201,7 +244,18 @@ class TestEmailServiceSending:
         with patch('smtplib.SMTP') as mock_smtp:
             mock_conn = Mock()
             mock_smtp.return_value = mock_conn
-            mock_conn.sendmail.return_value = {}
+
+            # 配置SMTP连接的必要属性
+            mock_conn.local_hostname = "localhost"
+            mock_conn.sock = Mock()
+            mock_conn.sock.file.return_value = Mock()
+
+            # 配置方法返回值
+            mock_conn.ehlo.return_value = (250, b"OK")
+            mock_conn.starttls.return_value = (220, b"Ready to start TLS")
+            mock_conn.login.return_value = (235, b"Authentication successful")
+            mock_conn.sendmail.return_value = {}  # 空字典表示成功
+            mock_conn.quit.return_value = (221, b"Bye")
 
             email_service.connect()
 
