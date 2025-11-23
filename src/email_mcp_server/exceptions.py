@@ -1,7 +1,6 @@
 """Custom exceptions for the Email MCP Server."""
 
 
-
 class EmailMCPServerError(Exception):
     """Base exception for all Email MCP Server errors."""
 

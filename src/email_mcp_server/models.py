@@ -214,7 +214,5 @@ class EmailStatusResponse(BaseModel):
 
     configured: bool = Field(..., description="是否已配置邮箱")
     provider: str | None = Field(None, description="邮箱提供商")
-    smtp_config: SMTPConfig | None = Field(
-        None, description="SMTP配置（隐藏敏感信息）"
-    )
+    smtp_config: SMTPConfig | None = Field(None, description="SMTP配置（隐藏敏感信息）")
     test_connection: bool | None = Field(None, description="连接测试结果")
