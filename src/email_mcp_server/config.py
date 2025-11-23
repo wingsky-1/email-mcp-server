@@ -31,10 +31,11 @@ class EmailSettings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra='ignore',  # 忽略额外的环境变量
     )
 
-    address: str = Field(default=..., description="邮箱地址")
-    password: str = Field(default=..., description="邮箱密码或授权码")
+    address: str = Field(default=..., alias="EMAIL_ADDRESS", description="邮箱地址")
+    password: str = Field(default=..., alias="EMAIL_PASSWORD", description="邮箱密码或授权码")
 
     # 可选的 SMTP 配置（如果不提供将自动检测）
     smtp_server: str | None = Field(default=None, alias="SMTP_SERVER")
@@ -95,6 +96,7 @@ class AppSettings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra='ignore',  # 忽略额外的环境变量
     )
 
     # 日志设置
