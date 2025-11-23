@@ -409,6 +409,43 @@ email-mcp-server/
 └── README.md                       # 项目说明
 ```
 
+## 📚 完整文档
+
+我们提供了全面的文档来帮助您更好地使用 Email MCP 服务器：
+
+### 📖 文档中心
+- **[📋 文档中心](docs/README.md)** - 所有文档的导航中心
+
+### 🚀 快速开始
+- **[⚙️ 配置指南](docs/CONFIGURATION.md)** - 详细的配置参数和最佳实践
+- **[🔌 MCP 客户端配置](docs/MCP_CLIENT_SETUP.md)** - Claude Code、Cursor、VS Code 等配置
+- **[💻 示例代码](docs/EXAMPLES.md)** - 丰富的使用示例和实际场景
+
+### 🔧 开发指南
+- **[👨‍💻 开发指南](docs/DEVELOPMENT_GUIDE.md)** - 开发环境搭建和贡献指南
+- **[📝 贡献指南](CONTRIBUTING.md)** - 如何参与项目开发
+- **[🧪 测试指南](docs/DEVELOPMENT_GUIDE.md#测试开发)** - 测试编写和执行
+
+### 📚 参考资料
+- **[🔍 API 文档](docs/API.md)** - 完整的 API 接口说明
+- **[❓ 常见问题](docs/FAQ.md)** - 常见问题解答
+- **[🚨 故障排除](docs/TROUBLESHOOTING.md)** - 问题诊断和解决方案
+- **[📖 变更日志](CHANGELOG.md)** - 版本更新记录
+
+### 📋 其他文档
+- **[✅ 确认功能指南](REQUIRE_CONFIRMATION_GUIDE.md)** - require_confirmation 功能详解
+- **[🐍 虚拟环境指南](虚拟环境使用指南.md)** - uv 和 venv 使用指南
+- **[📊 测试计划](测试计划.md)** - 项目测试现状和报告
+
+## 🔍 快速导航
+
+| 用户类型 | 推荐阅读 | 链接 |
+|---------|---------|------|
+| 👶 **初学者** | 安装配置 → 基本使用 | [配置指南](docs/CONFIGURATION.md) → [示例代码](docs/EXAMPLES.md) |
+| 🔧 **系统管理员** | 邮箱配置 → 安全设置 | [配置指南](docs/CONFIGURATION.md) → [故障排除](docs/TROUBLESHOOTING.md) |
+| 👨‍💻 **开发者** | 开发环境 → API 使用 | [开发指南](docs/DEVELOPMENT_GUIDE.md) → [API 文档](docs/API.md) |
+| 🚀 **DevOps** | 部署配置 → 监控运维 | [故障排除](docs/TROUBLESHOOTING.md) → [FAQ](docs/FAQ.md) |
+
 ## 其他文档
 
 - [CLAUDE.md](CLAUDE.md) - Claude Code 开发指南和项目说明
