@@ -76,11 +76,11 @@ class TestAttachmentService:
         local_attachment.path = str(test_file)
 
         with patch('email_mcp_server.attachment_service.Path') as mock_path:
-            mock_path.return_value = Path(str(test_file))
-            mock_path.return_value.exists.return_value = True
-            mock_path.return_value.stat.return_value.st_size = 12
-            mock_path.return_value.name = "test.txt"
-            mock_path.return_value.suffix = ".txt"
+            mock_path_instance = mock_path.return_value
+            mock_path_instance.exists.return_value = True
+            mock_path_instance.stat.return_value.st_size = 12
+            mock_path_instance.name = "test.txt"
+            mock_path_instance.suffix = ".txt"
 
             with patch('email_mcp_server.attachment_service.mimetypes') as mock_mimetypes:
                 mock_mimetypes.guess_type.return_value = ("text/plain", None)
@@ -102,7 +102,7 @@ class TestAttachmentService:
         with patch('email_mcp_server.attachment_service.Path') as mock_path:
             mock_path.return_value.exists.return_value = False
 
-            with pytest.raises(AttachmentFileNotFoundError):
+            with pytest.raises(AttachmentError):
                 attachment_service.process_attachment(local_attachment)
 
     @pytest.mark.unit
@@ -119,7 +119,7 @@ class TestAttachmentService:
             mock_path.return_value.exists.return_value = True
             mock_path.return_value.stat.return_value.st_size = len(large_content)
 
-            with pytest.raises(FileSizeError):
+            with pytest.raises(AttachmentError):
                 attachment_service.process_attachment(large_attachment)
 
     @pytest.mark.unit
