@@ -18,7 +18,9 @@
       "Skill(fastmcp)",
       "Bash(timeout:*)",
       "mcp__serena__list_dir",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "mcp__serena__find_symbol",
+      "mcp__serena__*"
     ],
     "deny": [],
     "ask": []
